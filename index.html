@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -132,6 +132,7 @@
                     <th>Nome</th>
                     <th>Solicitação</th>
                     <th>Status</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -179,7 +180,7 @@
             tabela.innerHTML = ""; // Limpando a tabela antes de adicionar novos registros
 
             const atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
-            atendimentos.forEach(atendimento => {
+            atendimentos.forEach((atendimento, index) => {
                 const row = tabela.insertRow();
                 const statusClass = atendimento.status === "Atendido" ? "status-atendido" : "status-pendente";
                 row.innerHTML = `
@@ -187,8 +188,25 @@
                     <td>${atendimento.nome}</td>
                     <td>${atendimento.solicitacao}</td>
                     <td class="${statusClass}">${atendimento.status}</td>
+                    <td><button onclick="editarStatus(${index})">Alterar Status</button></td>
                 `;
             });
+        }
+
+        // Função para editar o status de um atendimento
+        function editarStatus(index) {
+            let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            const atendimento = atendimentos[index];
+
+            // Alterna o status entre "Pendente" e "Atendido"
+            atendimento.status = atendimento.status === "Pendente" ? "Atendido" : "Pendente";
+
+            // Atualiza os dados no localStorage
+            atendimentos[index] = atendimento;
+            localStorage.setItem("atendimentos", JSON.stringify(atendimentos));
+
+            // Atualiza a tabela
+            listarAtendimentos();
         }
 
         // Função para limpar os dados de atendimentos
