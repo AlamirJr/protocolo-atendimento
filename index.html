@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo de Atendimento - Secretaria de Educação</title>
+    <style>
+        /* Estilos gerais */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #limpar-dados {
+            background-color: #f44336;
+            margin-top: 20px;
+        }
+
+        #limpar-dados:hover {
+            background-color: #e53935;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Protocolo de Atendimento - Secretaria de Educação</h1>
+        <form id="form-atendimento">
+            <div class="input-group">
+                <label for="nome">Nome do Solicitante:</label>
+                <input type="text" id="nome" required>
+            </div>
+            <div class="input-group">
+                <label for="solicitacao">Descrição da Solicitação:</label>
+                <textarea id="solicitacao" required></textarea>
+            </div>
+            <div class="input-group">
+                <button type="submit">Registrar Atendimento</button>
+            </div>
+        </form>
+
+        <h2>Atendimentos Registrados</h2>
+        <table id="tabela-atendimentos">
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Nome</th>
+                    <th>Solicitação</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Atendimentos serão listados aqui -->
+            </tbody>
+        </table>
+
+        <button id="limpar-dados">Limpar Atendimentos</button>
+    </div>
+
+    <script>
+        // Função para registrar um atendimento
+        document.getElementById("form-atendimento").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // Coletando os dados do formulário
+            const nome = document.getElementById("nome").value;
+            const solicitacao = document.getElementById("solicitacao").value;
+            const dataHora = new Date().toLocaleString();
+
+            // Criando um objeto de atendimento
+            const atendimento = {
+                dataHora,
+                nome,
+                solicitacao,
+                status: "Pendente"
+            };
+
+            // Armazenando o atendimento no armazenamento local (localStorage)
+            let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            atendimentos.push(atendimento);
+            localStorage.setItem("atendimentos", JSON.stringify(atendimentos));
+
+            // Atualizando a tabela de atendimentos
+            listarAtendimentos();
+
+            // Limpando o formulário
+            document.getElementById("form-atendimento").reset();
+        });
+
+        // Função para listar os atendimentos registrados
+        function listarAtendimentos() {
+            const tabela = document.getElementById("tabela-atendimentos").getElementsByTagName("tbody")[0];
+            tabela.innerHTML = ""; // Limpando a tabela antes de adicionar novos registros
+
+            const atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            atendimentos.forEach(atendimento => {
+                const row = tabela.insertRow();
+                row.innerHTML = `
+                    <td>${atendimento.dataHora}</td>
+                    <td>${atendimento.nome}</td>
+                    <td>${atendimento.solicitacao}</td>
+                    <td>${atendimento.status}</td>
+                `;
+            });
+        }
+
+        // Função para limpar os dados de atendimentos
+        document.getElementById("limpar-dados").addEventListener("click", function () {
+            const confirmacao = confirm("Você tem certeza que deseja limpar todos os atendimentos?");
+            if (confirmacao) {
+                localStorage.removeItem("atendimentos"); // Limpa os atendimentos armazenados no localStorage
+                listarAtendimentos(); // Atualiza a tabela para refletir a remoção
+                alert("Atendimentos apagados com sucesso!");
+            }
+        });
+
+        // Carregar atendimentos ao iniciar
+        listarAtendimentos();
+    </script>
+</body>
+</html>
