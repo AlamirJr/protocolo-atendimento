@@ -46,6 +46,7 @@
       border-radius: 12px;
       padding: 32px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      text-align: center;
     }
 
     h1 {
@@ -71,6 +72,8 @@
       background: var(--primary);
       border-radius: 8px;
       text-decoration: none;
+      border: none;
+      cursor: pointer;
       transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
       box-shadow: 0 4px 12px rgba(31, 58, 95, 0.25);
     }
@@ -88,36 +91,26 @@
       text-align: center;
     }
   </style>
-
-<button onclick="window.location.href='https://alamirjr.github.io/protocolo-atendimento/protocolo_atendimento.html'">
-  Ir para o Protocolo de Atendimento
-</button>
-
 </head>
+
 <body>
   <div class="container">
     <div class="card">
       <h1>Protocolo de Atendimento</h1>
       <p>
-        Acesse o sistema oficial de protocolo de atendimento por meio do link abaixo.
+        Acesse o sistema oficial de protocolo de atendimento por meio do botão abaixo.
       </p>
 
-      <a
+      <button 
         class="button"
-        href="https://alamirjr.github.io/protocolo-atendimento/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Acessar o Protocolo
-      </a>
+        onclick="window.location.href='https://alamirjr.github.io/protocolo-atendimento/protocolo_atendimento.html'">
+        Ir para o Protocolo de Atendimento
+      </button>
 
       <footer>
-        Abrirá em nova aba para sua segurança
+        Abrirá na mesma aba para acesso direto ao sistema
       </footer>
     </div>
   </div>
 </body>
 </html>
-
-
-
