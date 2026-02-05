@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Protocolo de Atendimento - Secretaria de Educação</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -21,13 +22,9 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
-    h1, h2 {
-      text-align: center;
-    }
+    h1, h2 { text-align: center; }
 
-    .input-group {
-      margin-bottom: 15px;
-    }
+    .input-group { margin-bottom: 15px; }
 
     label {
       display: block;
@@ -40,6 +37,7 @@
       padding: 8px;
       border-radius: 4px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
     button {
@@ -53,24 +51,16 @@
       font-size: 16px;
       cursor: pointer;
     }
+    button:hover { background-color: #45a049; }
 
-    button:hover {
-      background-color: #45a049;
-    }
+    #limpar-dados { background-color: #f44336; }
+    #limpar-dados:hover { background-color: #d32f2f; }
 
-    #limpar-dados {
-      background-color: #f44336;
-    }
-
-    #limpar-dados:hover {
-      background-color: #d32f2f;
-    }
-
-    #salvar-dados, #carregar-dados {
+    /* Botões Excel */
+    #escolher-arquivo, #salvar-dados, #carregar-dados {
       background-color: #2196F3;
     }
-
-    #salvar-dados:hover, #carregar-dados:hover {
+    #escolher-arquivo:hover, #salvar-dados:hover, #carregar-dados:hover {
       background-color: #1976D2;
     }
 
@@ -83,21 +73,34 @@
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
+      vertical-align: top;
+      word-break: break-word;
     }
 
-    th {
-      background-color: #f2f2f2;
+    th { background-color: #f2f2f2; }
+
+    .status-atendido { background-color: #c8e6c9; }
+    .status-pendente { background-color: #ffcccc; }
+
+    .acoes-btn {
+      width: auto;
+      padding: 6px 10px;
+      font-size: 14px;
+      margin: 0;
     }
 
-    .status-atendido {
-      background-color: #c8e6c9;
-    }
-
-    .status-pendente {
-      background-color: #ffcccc;
+    .aviso {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0 5px;
+      font-size: 14px;
+      line-height: 1.4;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>Protocolo de Atendimento</h1>
@@ -105,46 +108,55 @@
     <form id="form-atendimento">
       <div class="input-group">
         <label for="atendimento">Atendimento:</label>
-        <input type="text" id="atendimento" required>
+        <input type="text" id="atendimento" required />
       </div>
+
       <div class="input-group">
         <label for="telefone">Telefone:</label>
-        <input type="text" id="telefone" required>
+        <input type="text" id="telefone" required inputmode="tel" />
       </div>
+
       <div class="input-group">
-      <label for="vinculo">Vínculo com a Escola:</label>
+        <label for="vinculo">Vínculo com a Escola:</label>
         <select id="vinculo" required>
           <option value="">Selecione</option>
           <option value="Diretor">Diretor</option>
           <option value="Diretor Adjunto">Diretor Adjunto</option>
           <option value="Mãe">Mãe</option>
-          <option value="Outros">Outros</option> <!-- Novo item adicionado -->
+          <option value="Outros">Outros</option>
         </select>
       </div>
+
       <div class="input-group">
         <label for="aluno">Aluno:</label>
-        <input type="text" id="aluno" required>
+        <input type="text" id="aluno" required />
       </div>
+
       <div class="input-group">
         <label for="idade">Idade:</label>
-        <input type="number" id="idade" required>
+        <input type="number" id="idade" required min="0" />
       </div>
+
       <div class="input-group">
         <label for="ae">AE:</label>
-        <input type="text" id="ae" required>
+        <input type="text" id="ae" required />
       </div>
+
       <div class="input-group">
         <label for="turno">Turno:</label>
-        <input type="text" id="turno" required>
+        <input type="text" id="turno" required />
       </div>
+
       <div class="input-group">
         <label for="psp">PSP responsável:</label>
-        <input type="text" id="psp" required>
+        <input type="text" id="psp" required />
       </div>
+
       <div class="input-group">
         <label for="solicitacao">Descrição da Solicitação:</label>
-        <textarea id="solicitacao" required></textarea>
+        <textarea id="solicitacao" required rows="3"></textarea>
       </div>
+
       <div class="input-group">
         <label for="tipo">Tipo de Solicitação:</label>
         <select id="tipo" required>
@@ -153,6 +165,7 @@
           <option value="Pedido de Cuidador">Pedido de Cuidador</option>
         </select>
       </div>
+
       <div class="input-group">
         <label for="status">Status do Atendimento:</label>
         <select id="status" required>
@@ -164,8 +177,14 @@
       <button type="submit">Registrar Atendimento</button>
     </form>
 
-    <button id="salvar-dados">Salvar Atendimento</button>
-    <button id="carregar-dados">Carregar Atendimento</button>
+    <div class="aviso" id="aviso-api" style="display:none;">
+      Seu navegador não suporta sobrescrever o mesmo Excel automaticamente.
+      Use Chrome/Edge no computador para habilitar “Salvar no mesmo arquivo”.
+    </div>
+
+    <button id="escolher-arquivo">Escolher arquivo Excel (uma vez)</button>
+    <button id="salvar-dados">Salvar no mesmo Excel (sobrescrever)</button>
+    <button id="carregar-dados">Carregar Atendimento (Excel)</button>
     <button id="limpar-dados">Limpar Atendimentos</button>
 
     <h2>Atendimentos Registrados</h2>
@@ -191,104 +210,253 @@
     </table>
   </div>
 
+  <!-- SheetJS (XLSX) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <script>
+    const STORAGE_KEY = "atendimentos";
+    let excelFileHandle = null; // handle do arquivo para sobrescrever (Chrome/Edge)
+
+    function gerarId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+    }
+
+    function getAtendimentos() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }
+
+    function setAtendimentos(lista) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    }
+
+    // Detecta suporte à File System Access API
+    function suportaSobrescreverExcel() {
+      return !!window.showSaveFilePicker;
+    }
+
+    function mostrarAvisoSeNaoSuporta() {
+      const aviso = document.getElementById("aviso-api");
+      if (!suportaSobrescreverExcel()) {
+        aviso.style.display = "block";
+        // desabilita botões de sobrescrever
+        document.getElementById("escolher-arquivo").disabled = true;
+        document.getElementById("salvar-dados").disabled = true;
+      }
+    }
+
     document.getElementById("form-atendimento").addEventListener("submit", function (e) {
       e.preventDefault();
 
       const atendimento = {
+        id: gerarId(),
         dataHora: new Date().toLocaleString(),
-        atendimento: document.getElementById("atendimento").value,
-        telefone: document.getElementById("telefone").value,
+        atendimento: document.getElementById("atendimento").value.trim(),
+        telefone: document.getElementById("telefone").value.trim(),
         vinculo: document.getElementById("vinculo").value,
-        aluno: document.getElementById("aluno").value,
+        aluno: document.getElementById("aluno").value.trim(),
         idade: document.getElementById("idade").value,
-        ae: document.getElementById("ae").value,
-        turno: document.getElementById("turno").value,
-        psp: document.getElementById("psp").value,
-        solicitacao: document.getElementById("solicitacao").value,
+        ae: document.getElementById("ae").value.trim(),
+        turno: document.getElementById("turno").value.trim(),
+        psp: document.getElementById("psp").value.trim(),
+        solicitacao: document.getElementById("solicitacao").value.trim(),
         tipo: document.getElementById("tipo").value,
         status: document.getElementById("status").value
       };
 
-      let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+      const atendimentos = getAtendimentos();
       atendimentos.push(atendimento);
-      localStorage.setItem("atendimentos", JSON.stringify(atendimentos));
+      setAtendimentos(atendimentos);
+
       listarAtendimentos();
       e.target.reset();
     });
 
     function listarAtendimentos() {
-      const tabela = document.getElementById("tabela-atendimentos").getElementsByTagName("tbody")[0];
-      tabela.innerHTML = "";
+      const tbody = document.querySelector("#tabela-atendimentos tbody");
+      tbody.innerHTML = "";
 
-      let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+      // Ordena para exibição, sem alterar a ordem armazenada
+      const atendimentos = getAtendimentos().slice();
+      atendimentos.sort((a, b) => (a.psp || "").localeCompare(b.psp || ""));
 
-      atendimentos.sort((a, b) => a.psp.localeCompare(b.psp));
-
-      atendimentos.forEach((a, index) => {
-        const row = tabela.insertRow();
+      atendimentos.forEach((a) => {
+        const row = document.createElement("tr");
         const statusClass = a.status === "Atendido" ? "status-atendido" : "status-pendente";
-        row.innerHTML = `
-          <td>${a.dataHora}</td>
-          <td>${a.atendimento}</td>
-          <td>${a.telefone}</td>
-          <td>${a.vinculo}</td>
-          <td>${a.aluno}</td>
-          <td>${a.idade}</td>
-          <td>${a.ae}</td>
-          <td>${a.turno}</td>
-          <td>${a.psp}</td>
-          <td>${a.solicitacao}</td>
-          <td>${a.tipo}</td>
-          <td class="${statusClass}">${a.status}</td>
-          <td><button onclick="editarStatus(${index})">Alterar Status</button></td>
-        `;
+
+        const cells = [
+          a.dataHora,
+          a.atendimento,
+          a.telefone,
+          a.vinculo,
+          a.aluno,
+          a.idade,
+          a.ae,
+          a.turno,
+          a.psp,
+          a.solicitacao,
+          a.tipo
+        ];
+
+        cells.forEach((val) => {
+          const td = document.createElement("td");
+          td.textContent = val ?? "";
+          row.appendChild(td);
+        });
+
+        const tdStatus = document.createElement("td");
+        tdStatus.className = statusClass;
+        tdStatus.textContent = a.status ?? "";
+        row.appendChild(tdStatus);
+
+        const tdAcoes = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "acoes-btn";
+        btn.textContent = "Alterar Status";
+        btn.addEventListener("click", () => editarStatus(a.id));
+        tdAcoes.appendChild(btn);
+        row.appendChild(tdAcoes);
+
+        tbody.appendChild(row);
       });
     }
 
-    function editarStatus(index) {
-      let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
-      atendimentos[index].status = atendimentos[index].status === "Pendente" ? "Atendido" : "Pendente";
-      localStorage.setItem("atendimentos", JSON.stringify(atendimentos));
+    function editarStatus(id) {
+      const atendimentos = getAtendimentos();
+      const i = atendimentos.findIndex(x => x.id === id);
+      if (i === -1) return;
+
+      atendimentos[i].status = atendimentos[i].status === "Pendente" ? "Atendido" : "Pendente";
+      setAtendimentos(atendimentos);
       listarAtendimentos();
     }
 
     document.getElementById("limpar-dados").addEventListener("click", () => {
       if (confirm("Deseja apagar todos os atendimentos?")) {
-        localStorage.removeItem("atendimentos");
+        localStorage.removeItem(STORAGE_KEY);
         listarAtendimentos();
       }
     });
 
-    document.getElementById("salvar-dados").addEventListener("click", () => {
-      const dados = localStorage.getItem("atendimentos") || "[]";
-      const blob = new Blob([dados], { type: "application/json" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "atendimentos.json";
-      link.click();
+    // Escolher arquivo Excel (uma vez) para sobrescrever sempre o mesmo
+    document.getElementById("escolher-arquivo").addEventListener("click", async () => {
+      try {
+        excelFileHandle = await window.showSaveFilePicker({
+          suggestedName: "atendimentos.xlsx",
+          types: [{
+            description: "Arquivo Excel",
+            accept: {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+            }
+          }]
+        });
+        alert("Arquivo selecionado. A partir de agora ele será sobrescrito ao salvar.");
+      } catch {
+        alert("Nenhum arquivo foi selecionado.");
+      }
     });
 
+    function montarWorkbookAtendimentos(atendimentos) {
+      const exportRows = atendimentos.map(a => ({
+        "ID": a.id,
+        "Data/Hora": a.dataHora,
+        "Atendimento": a.atendimento,
+        "Telefone": a.telefone,
+        "Vínculo": a.vinculo,
+        "Aluno": a.aluno,
+        "Idade": a.idade,
+        "AE": a.ae,
+        "Turno": a.turno,
+        "PSP Responsável": a.psp,
+        "Solicitação": a.solicitacao,
+        "Tipo": a.tipo,
+        "Status": a.status
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Atendimentos");
+      return wb;
+    }
+
+    // SOBRESCREVER o mesmo Excel (sem criar arquivos duplicados)
+    document.getElementById("salvar-dados").addEventListener("click", async () => {
+      const atendimentos = getAtendimentos();
+
+      if (atendimentos.length === 0) {
+        alert("Não há atendimentos para salvar.");
+        return;
+      }
+
+      if (!excelFileHandle) {
+        alert("Clique primeiro em 'Escolher arquivo Excel (uma vez)'.");
+        return;
+      }
+
+      try {
+        const wb = montarWorkbookAtendimentos(atendimentos);
+        const buffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+        const writable = await excelFileHandle.createWritable();
+        await writable.write(buffer);
+        await writable.close();
+
+        alert("Excel atualizado (sobrescrito) com sucesso.");
+      } catch (err) {
+        alert("Falha ao sobrescrever o arquivo. Tente escolher o arquivo novamente.");
+      }
+    });
+
+    // IMPORTAR DE EXCEL (.xlsx)
     document.getElementById("carregar-dados").addEventListener("click", () => {
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = "application/json";
+      input.accept = ".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-      input.onchange = (e) => {
+      input.onchange = async (e) => {
         const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-          localStorage.setItem("atendimentos", reader.result);
+        if (!file) return;
+
+        try {
+          const data = await file.arrayBuffer();
+          const wb = XLSX.read(data, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+          if (!Array.isArray(rows)) throw new Error("Formato inválido.");
+
+          const normalizados = rows.map(r => ({
+            id: (r["ID"] || r["Id"] || r["id"] || gerarId()).toString(),
+            dataHora: (r["Data/Hora"] || r["dataHora"] || r["DataHora"] || new Date().toLocaleString()).toString(),
+            atendimento: (r["Atendimento"] || r["atendimento"] || "").toString(),
+            telefone: (r["Telefone"] || r["telefone"] || "").toString(),
+            vinculo: (r["Vínculo"] || r["Vinculo"] || r["vinculo"] || "").toString(),
+            aluno: (r["Aluno"] || r["aluno"] || "").toString(),
+            idade: (r["Idade"] || r["idade"] || "").toString(),
+            ae: (r["AE"] || r["ae"] || "").toString(),
+            turno: (r["Turno"] || r["turno"] || "").toString(),
+            psp: (r["PSP Responsável"] || r["PSP Responsavel"] || r["psp"] || "").toString(),
+            solicitacao: (r["Solicitação"] || r["Solicitacao"] || r["solicitacao"] || "").toString(),
+            tipo: (r["Tipo"] || r["tipo"] || "").toString(),
+            status: ((r["Status"] || r["status"] || "Pendente").toString() === "Atendido") ? "Atendido" : "Pendente"
+          }));
+
+          setAtendimentos(normalizados);
           listarAtendimentos();
-        };
-        reader.readAsText(file);
+          alert("Atendimentos importados com sucesso!");
+        } catch (err) {
+          alert("Arquivo inválido ou corrompido. Não foi possível importar.");
+        }
       };
 
       input.click();
     });
 
-    window.onload = listarAtendimentos;
+    window.onload = () => {
+      mostrarAvisoSeNaoSuporta();
+      listarAtendimentos();
+    };
   </script>
 </body>
-
 </html>
