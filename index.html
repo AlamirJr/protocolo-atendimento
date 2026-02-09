@@ -508,6 +508,15 @@
           Importar Excel
         </button>
 
+        <!-- ✅ NOVO BOTÃO: copiar resumo de pendências -->
+        <button class="btn btn-primary" id="copiar-resumo" type="button" title="Copiar resumo de pendências por PSP">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M8 7h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Copiar pendências
+        </button>
+
         <button class="btn btn-danger" id="limpar-dados" type="button" title="Limpar Atendimentos">
           <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2m-1 0v16a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6h10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Limpar
@@ -629,6 +638,7 @@
             <li>Use <b>Escolher Excel</b> uma única vez; depois, <b>Salvar Excel</b> sobrescreve o mesmo arquivo.</li>
             <li>Para consulta rápida, a tabela é ordenada por <b>PSP</b> (exibição).</li>
             <li>Para alterar situação, clique em <b>Alterar status</b> na linha.</li>
+            <li><b>Novo:</b> use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
             <li>Se ficar lento com muitos registros, prefira trabalhar por períodos e exportar.</li>
           </ul>
         </div>
@@ -675,7 +685,7 @@
   <!-- ✅ Script do LOCK (vem antes do resto) -->
   <script>
     (function(){
-      const PASSWORD = "1a2b3c4d5e6f"; // <<< TROQUE AQUI
+      const PASSWORD = "1234"; // <<< TROQUE AQUI
       const lock = document.getElementById("lock");
       const app  = document.getElementById("app");
       const form = document.getElementById("lock-form");
@@ -951,6 +961,66 @@
       input.click();
     });
 
+    /* ===========================================================
+       ✅ NOVA FUNÇÃO: Copiar resumo de pendências por PSP
+       - lê o localStorage (getAtendimentos)
+       - filtra pendentes
+       - agrupa por PSP
+       - copia para clipboard (com fallback em prompt)
+       =========================================================== */
+    async function copiarResumoPendenciasPorPSP() {
+      const atendimentos = getAtendimentos();
+      const pendentes = atendimentos.filter(a => (a.status || "") !== "Atendido");
+
+      if (pendentes.length === 0) {
+        alert("Não há pendências.");
+        return;
+      }
+
+      const grupos = new Map();
+      for (const a of pendentes) {
+        const psp = (a.psp || "Sem PSP").trim() || "Sem PSP";
+        if (!grupos.has(psp)) grupos.set(psp, []);
+        grupos.get(psp).push(a);
+      }
+
+      const pspsOrdenados = Array.from(grupos.keys()).sort((x, y) => x.localeCompare(y));
+
+      const linhas = [];
+      linhas.push(`📌 Resumo de pendências (total: ${pendentes.length})`);
+      linhas.push(`Gerado em: ${new Date().toLocaleString()}`);
+      linhas.push("");
+
+      for (const psp of pspsOrdenados) {
+        const itens = grupos.get(psp);
+        linhas.push(`👤 ${psp}: ${itens.length} pendência(s)`);
+
+        // até 10 por PSP pra não virar um textão gigante
+        itens.slice(0, 10).forEach((a, idx) => {
+          linhas.push(`  ${idx + 1}. ${a.aluno || "-"} • ${a.tipo || "-"} • AE: ${a.ae || "-"}`);
+        });
+
+        if (itens.length > 10) {
+          linhas.push(`  … +${itens.length - 10} item(ns)`);
+        }
+
+        linhas.push("");
+      }
+
+      const texto = linhas.join("\n");
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        alert("Resumo copiado para a área de transferência!");
+      } catch (e) {
+        // fallback: mostra em prompt para copiar manualmente
+        prompt("Seu navegador bloqueou o copiar automático. Copie manualmente:", texto);
+      }
+    }
+
+    // ✅ Listener do novo botão
+    document.getElementById("copiar-resumo").addEventListener("click", copiarResumoPendenciasPorPSP);
+
     window.onload = () => {
       mostrarAvisoSeNaoSuporta();
       listarAtendimentos();
@@ -958,4 +1028,3 @@
   </script>
 </body>
 </html>
-
