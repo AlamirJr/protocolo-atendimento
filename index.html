@@ -48,6 +48,92 @@
       color: var(--text);
     }
 
+    /* =========================
+       🔒 TELA DE SENHA (LOCK)
+       ========================= */
+    #lock{
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: radial-gradient(900px 500px at 20% -10%, rgba(37,99,235,.18), transparent 55%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(16,185,129,.14), transparent 50%),
+                  #0b1220;
+    }
+
+    .lock-card{
+      width: min(520px, 100%);
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      padding: 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .lock-title{
+      margin: 0 0 6px;
+      font-size: 18px;
+      color: #111827;
+      letter-spacing: .2px;
+    }
+    .lock-subtitle{
+      margin: 0 0 14px;
+      color: #374151;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .lock-row{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+
+    .lock-input{
+      flex: 1 1 220px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .lock-input:focus{
+      border-color: rgba(37,99,235,.55);
+      box-shadow: var(--focus);
+    }
+
+    .lock-btn{
+      appearance:none;
+      border: 1px solid transparent;
+      background: linear-gradient(180deg, var(--primary), var(--primary-2));
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 13px;
+      box-shadow: 0 10px 22px rgba(37,99,235,.25);
+      white-space: nowrap;
+    }
+    .lock-btn:hover{ filter: brightness(1.05); }
+    .lock-hint{
+      margin: 10px 0 0;
+      color: rgba(17,24,39,.70);
+      font-size: 12px;
+    }
+
+    /* o app fica escondido até destravar */
+    #app{ display:none; }
+
+    /* =========================
+       (SEU CSS ORIGINAL CONTINUA)
+       ========================= */
+
     .app{
       max-width: 1200px;
       margin: 22px auto;
@@ -290,7 +376,7 @@
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 980px; /* permite rolagem horizontal com muitos campos */
+      min-width: 980px;
       background: #fff;
     }
     thead th{
@@ -377,7 +463,25 @@
 </head>
 
 <body>
-  <div class="app">
+
+  <!-- 🔒 BLOQUEIO -->
+  <div id="lock" role="dialog" aria-modal="true" aria-labelledby="lock-title">
+    <div class="lock-card">
+      <h2 class="lock-title" id="lock-title">Acesso restrito</h2>
+      <p class="lock-subtitle">Digite a senha para acessar o Protocolo de Atendimento.</p>
+
+      <form id="lock-form" autocomplete="off">
+        <div class="lock-row">
+          <input class="lock-input" id="lock-pass" type="password" placeholder="Senha" aria-label="Senha" />
+          <button class="lock-btn" type="submit">Entrar</button>
+        </div>
+        <p class="lock-hint">Obs.: proteção local (HTML estático). Para segurança real, use autenticação no servidor.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ APP (fica oculto até destravar) -->
+  <div class="app" id="app">
 
     <header class="topbar">
       <div class="brand">
@@ -568,12 +672,52 @@
 
   </div>
 
+  <!-- ✅ Script do LOCK (vem antes do resto) -->
+  <script>
+    (function(){
+      const PASSWORD = "1234"; // <<< TROQUE AQUI
+      const lock = document.getElementById("lock");
+      const app  = document.getElementById("app");
+      const form = document.getElementById("lock-form");
+      const input = document.getElementById("lock-pass");
+
+      function unlock(){
+        lock.style.display = "none";
+        app.style.display = "block";
+      }
+
+      form.addEventListener("submit", function(ev){
+        ev.preventDefault();
+        const value = (input.value || "").trim();
+        if(value === PASSWORD){
+          try { sessionStorage.setItem("protocolo_unlock", "1"); } catch(e) {}
+          unlock();
+        }else{
+          input.value = "";
+          input.focus();
+          alert("Senha incorreta.");
+        }
+      });
+
+      // mantém destravado só nesta aba (até fechar)
+      try{
+        if(sessionStorage.getItem("protocolo_unlock") === "1"){
+          unlock();
+        }else{
+          input.focus();
+        }
+      }catch(e){
+        input.focus();
+      }
+    })();
+  </script>
+
   <!-- SheetJS (XLSX) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
     const STORAGE_KEY = "atendimentos";
-    let excelFileHandle = null; // handle do arquivo para sobrescrever (Chrome/Edge)
+    let excelFileHandle = null;
 
     function gerarId() {
       if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -588,7 +732,6 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
     }
 
-    // Detecta suporte à File System Access API
     function suportaSobrescreverExcel() {
       return !!window.showSaveFilePicker;
     }
@@ -597,7 +740,6 @@
       const aviso = document.getElementById("aviso-api");
       if (!suportaSobrescreverExcel()) {
         aviso.style.display = "block";
-        // desabilita botões de sobrescrever
         document.getElementById("escolher-arquivo").disabled = true;
         document.getElementById("salvar-dados").disabled = true;
       }
@@ -634,7 +776,6 @@
       const tbody = document.querySelector("#tabela-atendimentos tbody");
       tbody.innerHTML = "";
 
-      // Ordena para exibição, sem alterar a ordem armazenada
       const atendimentos = getAtendimentos().slice();
       atendimentos.sort((a, b) => (a.psp || "").localeCompare(b.psp || ""));
 
@@ -661,7 +802,6 @@
           row.appendChild(td);
         });
 
-        // status com badge
         const tdStatus = document.createElement("td");
         const badge = document.createElement("span");
         const atendido = (a.status === "Atendido");
@@ -700,7 +840,6 @@
       }
     });
 
-    // Escolher arquivo Excel (uma vez) para sobrescrever sempre o mesmo
     document.getElementById("escolher-arquivo").addEventListener("click", async () => {
       try {
         excelFileHandle = await window.showSaveFilePicker({
@@ -741,7 +880,6 @@
       return wb;
     }
 
-    // SOBRESCREVER o mesmo Excel (sem criar arquivos duplicados)
     document.getElementById("salvar-dados").addEventListener("click", async () => {
       const atendimentos = getAtendimentos();
 
@@ -769,7 +907,6 @@
       }
     });
 
-    // IMPORTAR DE EXCEL (.xlsx)
     document.getElementById("carregar-dados").addEventListener("click", () => {
       const input = document.createElement("input");
       input.type = "file";
