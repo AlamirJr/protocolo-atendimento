@@ -459,6 +459,35 @@
       flex-wrap: wrap;
       margin-top: 6px;
     }
+
+    /* ===========================================================
+       ✅ NOVO: ferramentas de filtro na tabela (pesquisa + contador)
+       =========================================================== */
+    .table-tools{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .search{
+      flex: 1 1 320px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+    }
+
+    .search input{
+      flex: 1 1 auto;
+    }
+
+    .counter{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -508,7 +537,7 @@
           Importar Excel
         </button>
 
-        <!-- ✅ NOVO BOTÃO: copiar resumo de pendências -->
+        <!-- ✅ BOTÃO: copiar resumo de pendências -->
         <button class="btn btn-primary" id="copiar-resumo" type="button" title="Copiar resumo de pendências por PSP">
           <svg class="icon" viewBox="0 0 24 24" fill="none">
             <path d="M8 7h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -639,6 +668,7 @@
             <li>Para consulta rápida, a tabela é ordenada por <b>PSP</b> (exibição).</li>
             <li>Para alterar situação, clique em <b>Alterar status</b> na linha.</li>
             <li><b>Novo:</b> use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
+            <li><b>Novo:</b> use o campo <b>Filtrar</b> acima da tabela para achar qualquer registro rápido.</li>
             <li>Se ficar lento com muitos registros, prefira trabalhar por períodos e exportar.</li>
           </ul>
         </div>
@@ -655,6 +685,16 @@
       </div>
 
       <div class="card-body">
+
+        <!-- ✅ NOVO: Ferramentas da tabela (filtro + limpar + contador) -->
+        <div class="table-tools">
+          <div class="search">
+            <input id="filtro-tabela" type="text" placeholder="Filtrar por aluno, AE, PSP, telefone, tipo, status..." />
+            <button class="btn btn-primary" id="limpar-filtro" type="button">Limpar filtro</button>
+          </div>
+          <div class="counter" id="contador-tabela">0 de 0</div>
+        </div>
+
         <div class="table-wrap">
           <table id="tabela-atendimentos">
             <thead>
@@ -782,12 +822,37 @@
       e.target.reset();
     });
 
+    /* ===========================================================
+       ✅ ATUALIZADO: listar atendimentos com filtro + contador
+       - lê o filtro do input #filtro-tabela
+       - filtra por qualquer campo (busca full-text)
+       - atualiza contador "X de Y"
+       =========================================================== */
     function listarAtendimentos() {
       const tbody = document.querySelector("#tabela-atendimentos tbody");
       tbody.innerHTML = "";
 
-      const atendimentos = getAtendimentos().slice();
-      atendimentos.sort((a, b) => (a.psp || "").localeCompare(b.psp || ""));
+      const filtroEl = document.getElementById("filtro-tabela");
+      const contadorEl = document.getElementById("contador-tabela");
+
+      const filtro = (filtroEl?.value || "").trim().toLowerCase();
+
+      const atendimentosAll = getAtendimentos().slice();
+      atendimentosAll.sort((a, b) => (a.psp || "").localeCompare(b.psp || ""));
+
+      const atendimentos = !filtro
+        ? atendimentosAll
+        : atendimentosAll.filter(a => {
+            const blob = [
+              a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno, a.idade,
+              a.ae, a.turno, a.psp, a.solicitacao, a.tipo, a.status
+            ].join(" ").toLowerCase();
+            return blob.includes(filtro);
+          });
+
+      if (contadorEl) {
+        contadorEl.textContent = `${atendimentos.length} de ${atendimentosAll.length}`;
+      }
 
       atendimentos.forEach((a) => {
         const row = document.createElement("tr");
@@ -962,11 +1027,7 @@
     });
 
     /* ===========================================================
-       ✅ NOVA FUNÇÃO: Copiar resumo de pendências por PSP
-       - lê o localStorage (getAtendimentos)
-       - filtra pendentes
-       - agrupa por PSP
-       - copia para clipboard (com fallback em prompt)
+       ✅ Copiar resumo de pendências por PSP
        =========================================================== */
     async function copiarResumoPendenciasPorPSP() {
       const atendimentos = getAtendimentos();
@@ -1013,13 +1074,23 @@
         await navigator.clipboard.writeText(texto);
         alert("Resumo copiado para a área de transferência!");
       } catch (e) {
-        // fallback: mostra em prompt para copiar manualmente
         prompt("Seu navegador bloqueou o copiar automático. Copie manualmente:", texto);
       }
     }
 
-    // ✅ Listener do novo botão
     document.getElementById("copiar-resumo").addEventListener("click", copiarResumoPendenciasPorPSP);
+
+    /* ===========================================================
+       ✅ NOVO: listeners do filtro/limpar filtro
+       =========================================================== */
+    document.getElementById("filtro-tabela").addEventListener("input", listarAtendimentos);
+
+    document.getElementById("limpar-filtro").addEventListener("click", () => {
+      const el = document.getElementById("filtro-tabela");
+      el.value = "";
+      el.focus();
+      listarAtendimentos();
+    });
 
     window.onload = () => {
       mostrarAvisoSeNaoSuporta();
@@ -1028,5 +1099,3 @@
   </script>
 </body>
 </html>
-
-
