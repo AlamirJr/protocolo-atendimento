@@ -424,15 +424,27 @@
       background: currentColor;
       opacity: .75;
     }
-    .badge-atendido{
-      background: var(--attended-bg);
-      color: var(--attended);
-      border-color: rgba(22, 101, 52, .20);
-    }
+
+    /* ✅ Status coloridos (novos) */
     .badge-pendente{
       background: var(--pending-bg);
       color: var(--pending);
       border-color: rgba(153, 27, 27, .18);
+    }
+    .badge-andamento{
+      background: var(--warn-bg);
+      color: #92400e;
+      border-color: rgba(245, 158, 11, .35);
+    }
+    .badge-concluido{
+      background: var(--attended-bg);
+      color: var(--attended);
+      border-color: rgba(22, 101, 52, .20);
+    }
+    .badge-cancelado{
+      background: #f3f4f6;
+      color: #374151;
+      border-color: rgba(107, 114, 128, .25);
     }
 
     /* Inline action button */
@@ -632,9 +644,12 @@
 
               <div class="field col-6">
                 <label for="status">Status do atendimento</label>
+                <!-- ✅ ampliado p/ bater com planilha -->
                 <select id="status" required>
                   <option value="Pendente">Pendente</option>
-                  <option value="Atendido">Atendido</option>
+                  <option value="Em andamento">Em andamento</option>
+                  <option value="Concluído">Concluído</option>
+                  <option value="Cancelado">Cancelado</option>
                 </select>
               </div>
             </div>
@@ -685,8 +700,6 @@
       </div>
 
       <div class="card-body">
-
-        <!-- ✅ NOVO: Ferramentas da tabela (filtro + limpar + contador) -->
         <div class="table-tools">
           <div class="search">
             <input id="filtro-tabela" type="text" placeholder="Filtrar por aluno, AE, PSP, telefone, tipo, status..." />
@@ -822,12 +835,21 @@
       e.target.reset();
     });
 
-    /* ===========================================================
-       ✅ ATUALIZADO: listar atendimentos com filtro + contador
-       - lê o filtro do input #filtro-tabela
-       - filtra por qualquer campo (busca full-text)
-       - atualiza contador "X de Y"
-       =========================================================== */
+    function statusToBadge(statusRaw){
+      const s = (statusRaw || "Pendente").toString().trim().toLowerCase();
+
+      if (s === "concluído" || s === "concluido" || s === "atendido") {
+        return { cls: "badge-concluido", label: "Concluído" };
+      }
+      if (s === "em andamento" || s === "andamento") {
+        return { cls: "badge-andamento", label: "Em andamento" };
+      }
+      if (s === "cancelado" || s === "cancelada") {
+        return { cls: "badge-cancelado", label: "Cancelado" };
+      }
+      return { cls: "badge-pendente", label: "Pendente" };
+    }
+
     function listarAtendimentos() {
       const tbody = document.querySelector("#tabela-atendimentos tbody");
       tbody.innerHTML = "";
@@ -850,9 +872,7 @@
             return blob.includes(filtro);
           });
 
-      if (contadorEl) {
-        contadorEl.textContent = `${atendimentos.length} de ${atendimentosAll.length}`;
-      }
+      if (contadorEl) contadorEl.textContent = `${atendimentos.length} de ${atendimentosAll.length}`;
 
       atendimentos.forEach((a) => {
         const row = document.createElement("tr");
@@ -879,9 +899,9 @@
 
         const tdStatus = document.createElement("td");
         const badge = document.createElement("span");
-        const atendido = (a.status === "Atendido");
-        badge.className = "badge " + (atendido ? "badge-atendido" : "badge-pendente");
-        badge.textContent = atendido ? "Atendido" : "Pendente";
+        const b = statusToBadge(a.status);
+        badge.className = "badge " + b.cls;
+        badge.textContent = b.label;
         tdStatus.appendChild(badge);
         row.appendChild(tdStatus);
 
@@ -898,12 +918,17 @@
       });
     }
 
+    /* ✅ alterna entre os 4 status */
     function editarStatus(id) {
       const atendimentos = getAtendimentos();
       const i = atendimentos.findIndex(x => x.id === id);
       if (i === -1) return;
 
-      atendimentos[i].status = atendimentos[i].status === "Pendente" ? "Atendido" : "Pendente";
+      const ordem = ["Pendente", "Em andamento", "Concluído", "Cancelado"];
+      const atual = (atendimentos[i].status || "Pendente").toString();
+      const idx = ordem.findIndex(s => s.toLowerCase() === atual.toLowerCase());
+      atendimentos[i].status = ordem[(idx + 1 + ordem.length) % ordem.length];
+
       setAtendimentos(atendimentos);
       listarAtendimentos();
     }
@@ -932,21 +957,22 @@
       }
     });
 
+    /* ✅ EXPORT: cabeçalhos iguais aos da SUA PLANILHA */
     function montarWorkbookAtendimentos(atendimentos) {
       const exportRows = atendimentos.map(a => ({
         "ID": a.id,
         "Data/Hora": a.dataHora,
         "Atendimento": a.atendimento,
         "Telefone": a.telefone,
-        "Vínculo": a.vinculo,
+        "Vínculo com a escola": a.vinculo,
         "Aluno": a.aluno,
         "Idade": a.idade,
         "AE": a.ae,
         "Turno": a.turno,
-        "PSP Responsável": a.psp,
-        "Solicitação": a.solicitacao,
-        "Tipo": a.tipo,
-        "Status": a.status
+        "PSP responsável": a.psp,
+        "Descrição da solicitação": a.solicitacao,
+        "Tipo de solicitação": a.tipo,
+        "Status do atendimento": a.status
       }));
 
       const ws = XLSX.utils.json_to_sheet(exportRows);
@@ -999,20 +1025,27 @@
 
           if (!Array.isArray(rows)) throw new Error("Formato inválido.");
 
+          /* ✅ IMPORT: aceita nomes antigos E os nomes reais da planilha */
           const normalizados = rows.map(r => ({
             id: (r["ID"] || r["Id"] || r["id"] || gerarId()).toString(),
             dataHora: (r["Data/Hora"] || r["dataHora"] || r["DataHora"] || new Date().toLocaleString()).toString(),
             atendimento: (r["Atendimento"] || r["atendimento"] || "").toString(),
             telefone: (r["Telefone"] || r["telefone"] || "").toString(),
-            vinculo: (r["Vínculo"] || r["Vinculo"] || r["vinculo"] || "").toString(),
+
+            vinculo: (r["Vínculo com a escola"] || r["Vínculo"] || r["Vinculo"] || r["vinculo"] || "").toString(),
+
             aluno: (r["Aluno"] || r["aluno"] || "").toString(),
             idade: (r["Idade"] || r["idade"] || "").toString(),
             ae: (r["AE"] || r["ae"] || "").toString(),
             turno: (r["Turno"] || r["turno"] || "").toString(),
-            psp: (r["PSP Responsável"] || r["PSP Responsavel"] || r["psp"] || "").toString(),
-            solicitacao: (r["Solicitação"] || r["Solicitacao"] || r["solicitacao"] || "").toString(),
-            tipo: (r["Tipo"] || r["tipo"] || "").toString(),
-            status: ((r["Status"] || r["status"] || "Pendente").toString() === "Atendido") ? "Atendido" : "Pendente"
+
+            psp: (r["PSP responsável"] || r["PSP Responsável"] || r["PSP Responsavel"] || r["psp"] || "").toString(),
+
+            solicitacao: (r["Descrição da solicitação"] || r["Solicitação"] || r["Solicitacao"] || r["solicitacao"] || "").toString(),
+
+            tipo: (r["Tipo de solicitação"] || r["Tipo"] || r["tipo"] || "").toString(),
+
+            status: (r["Status do atendimento"] || r["Status"] || r["status"] || "Pendente").toString()
           }));
 
           setAtendimentos(normalizados);
@@ -1026,12 +1059,12 @@
       input.click();
     });
 
-    /* ===========================================================
-       ✅ Copiar resumo de pendências por PSP
-       =========================================================== */
     async function copiarResumoPendenciasPorPSP() {
       const atendimentos = getAtendimentos();
-      const pendentes = atendimentos.filter(a => (a.status || "") !== "Atendido");
+      const pendentes = atendimentos.filter(a => {
+        const s = (a.status || "Pendente").toString().toLowerCase();
+        return !(s === "concluído" || s === "concluido" || s === "atendido");
+      });
 
       if (pendentes.length === 0) {
         alert("Não há pendências.");
@@ -1056,7 +1089,6 @@
         const itens = grupos.get(psp);
         linhas.push(`👤 ${psp}: ${itens.length} pendência(s)`);
 
-        // até 10 por PSP pra não virar um textão gigante
         itens.slice(0, 10).forEach((a, idx) => {
           linhas.push(`  ${idx + 1}. ${a.aluno || "-"} • ${a.tipo || "-"} • AE: ${a.ae || "-"}`);
         });
@@ -1080,9 +1112,6 @@
 
     document.getElementById("copiar-resumo").addEventListener("click", copiarResumoPendenciasPorPSP);
 
-    /* ===========================================================
-       ✅ NOVO: listeners do filtro/limpar filtro
-       =========================================================== */
     document.getElementById("filtro-tabela").addEventListener("input", listarAtendimentos);
 
     document.getElementById("limpar-filtro").addEventListener("click", () => {
@@ -1099,7 +1128,3 @@
   </script>
 </body>
 </html>
-
-
-
-
