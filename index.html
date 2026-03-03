@@ -130,10 +130,6 @@
     /* o app fica escondido até destravar */
     #app{ display:none; }
 
-    /* =========================
-       (SEU CSS ORIGINAL CONTINUA)
-       ========================= */
-
     .app{
       max-width: 1200px;
       margin: 22px auto;
@@ -702,6 +698,8 @@
           <table id="tabela-atendimentos">
             <thead>
               <tr>
+                <!-- ✅ NOVO: coluna Nº -->
+                <th>Nº</th>
                 <th>Data/Hora</th>
                 <th>Atendimento</th>
                 <th>Telefone</th>
@@ -863,8 +861,14 @@
 
       if (contadorEl) contadorEl.textContent = `${atendimentos.length} de ${atendimentosAll.length}`;
 
-      atendimentos.forEach((a) => {
+      // ✅ idx = posição (1..N) na lista filtrada/ordenada
+      atendimentos.forEach((a, idx) => {
         const row = document.createElement("tr");
+
+        // ✅ NOVO: coluna Nº
+        const tdNum = document.createElement("td");
+        tdNum.textContent = String(idx + 1);
+        row.appendChild(tdNum);
 
         const cells = [
           a.dataHora,
@@ -945,6 +949,7 @@
       }
     });
 
+    // ✅ (opcional) export continua como antes (sem Nº fixo)
     function montarWorkbookAtendimentos(atendimentos) {
       const exportRows = atendimentos.map(a => ({
         "ID": a.id,
@@ -996,20 +1001,15 @@
     });
 
     /* ============================================================
-       ✅ NOVO: NORMALIZADOR DE CABEÇALHOS (IMPORT ROBUSTO)
-       - remove acentos
-       - ignora maiúsc/minúsc
-       - troca símbolos (/, espaços) por underscore
-       Ex.: "DATA/HORA" -> "data_hora"
-            "PSP RESPONSÁVEL" -> "psp_responsavel"
-            "SOLICITAÇÃO" -> "solicitacao"
+       ✅ IMPORT ROBUSTO: normaliza cabeçalhos (aceita CAIXA ALTA,
+          acentos, /, espaços etc.)
        ============================================================ */
     function keyNorm(s){
       return (s || "")
         .toString()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "_") // troca / espaço etc por _
+        .replace(/[^a-z0-9]+/g, "_")
         .replace(/^_+|_+$/g, "");
     }
 
@@ -1036,40 +1036,22 @@
 
           if (!Array.isArray(rows)) throw new Error("Formato inválido.");
 
-          // ✅ agora normaliza cabeçalho e aceita qualquer variação
           const normalizados = rows.map(raw => {
             const r = rowNorm(raw);
 
             return {
               id: (r.id || gerarId()).toString(),
-
-              // aceita: DATA/HORA, Data/Hora, dataHora, DataHora...
-              dataHora: (r.data_hora || r.datahora || r.data_hora_ || r.datahora_ || new Date().toLocaleString()).toString(),
-
+              dataHora: (r.data_hora || r.datahora || new Date().toLocaleString()).toString(),
               atendimento: (r.atendimento || "").toString(),
               telefone: (r.telefone || "").toString(),
-
-              // aceita: VÍNCULO, Vínculo, Vinculo, "Vínculo com a escola"
               vinculo: (r.vinculo || r.vinculo_com_a_escola || "").toString(),
-
               aluno: (r.aluno || "").toString(),
               idade: (r.idade || "").toString(),
-
-              // AE
               ae: (r.ae || "").toString(),
-
               turno: (r.turno || "").toString(),
-
-              // aceita: PSP RESPONSÁVEL, PSP responsável
               psp: (r.psp_responsavel || r.psp || "").toString(),
-
-              // aceita: SOLICITAÇÃO, "Descrição da solicitação"
               solicitacao: (r.solicitacao || r.descricao_da_solicitacao || "").toString(),
-
-              // aceita: TIPO, "Tipo de solicitação"
               tipo: (r.tipo || r.tipo_de_solicitacao || "").toString(),
-
-              // aceita: STATUS, "Status do atendimento"
               status: (r.status || r.status_do_atendimento || "Pendente").toString()
             };
           });
