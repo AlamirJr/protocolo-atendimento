@@ -425,7 +425,6 @@
       opacity: .75;
     }
 
-    /* ✅ Status coloridos (novos) */
     .badge-pendente{
       background: var(--pending-bg);
       color: var(--pending);
@@ -447,7 +446,6 @@
       border-color: rgba(107, 114, 128, .25);
     }
 
-    /* Inline action button */
     .acoes-btn{
       width: auto;
       padding: 8px 10px;
@@ -463,7 +461,6 @@
     .acoes-btn:active{ transform: translateY(0); }
     .acoes-btn:focus{ outline:none; box-shadow: var(--focus), 0 10px 18px rgba(17,24,39,.10); }
 
-    /* Small helper line */
     .subline{
       display:flex;
       justify-content: space-between;
@@ -472,9 +469,6 @@
       margin-top: 6px;
     }
 
-    /* ===========================================================
-       ✅ NOVO: ferramentas de filtro na tabela (pesquisa + contador)
-       =========================================================== */
     .table-tools{
       display:flex;
       gap: 10px;
@@ -491,9 +485,7 @@
       align-items:center;
     }
 
-    .search input{
-      flex: 1 1 auto;
-    }
+    .search input{ flex: 1 1 auto; }
 
     .counter{
       font-size: 12px;
@@ -521,7 +513,7 @@
     </div>
   </div>
 
-  <!-- ✅ APP (fica oculto até destravar) -->
+  <!-- ✅ APP -->
   <div class="app" id="app">
 
     <header class="topbar">
@@ -549,7 +541,6 @@
           Importar Excel
         </button>
 
-        <!-- ✅ BOTÃO: copiar resumo de pendências -->
         <button class="btn btn-primary" id="copiar-resumo" type="button" title="Copiar resumo de pendências por PSP">
           <svg class="icon" viewBox="0 0 24 24" fill="none">
             <path d="M8 7h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -644,7 +635,6 @@
 
               <div class="field col-6">
                 <label for="status">Status do atendimento</label>
-                <!-- ✅ ampliado p/ bater com planilha -->
                 <select id="status" required>
                   <option value="Pendente">Pendente</option>
                   <option value="Em andamento">Em andamento</option>
@@ -669,7 +659,7 @@
         </div>
       </section>
 
-      <!-- INFO CARD -->
+      <!-- INFO -->
       <aside class="card">
         <div class="card-header">
           <div>
@@ -735,7 +725,7 @@
 
   </div>
 
-  <!-- ✅ Script do LOCK (vem antes do resto) -->
+  <!-- LOCK -->
   <script>
     (function(){
       const PASSWORD = "1234"; // <<< TROQUE AQUI
@@ -762,7 +752,6 @@
         }
       });
 
-      // mantém destravado só nesta aba (até fechar)
       try{
         if(sessionStorage.getItem("protocolo_unlock") === "1"){
           unlock();
@@ -775,7 +764,7 @@
     })();
   </script>
 
-  <!-- SheetJS (XLSX) -->
+  <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
@@ -918,7 +907,6 @@
       });
     }
 
-    /* ✅ alterna entre os 4 status */
     function editarStatus(id) {
       const atendimentos = getAtendimentos();
       const i = atendimentos.findIndex(x => x.id === id);
@@ -957,7 +945,6 @@
       }
     });
 
-    /* ✅ EXPORT: cabeçalhos iguais aos da SUA PLANILHA */
     function montarWorkbookAtendimentos(atendimentos) {
       const exportRows = atendimentos.map(a => ({
         "ID": a.id,
@@ -1008,6 +995,30 @@
       }
     });
 
+    /* ============================================================
+       ✅ NOVO: NORMALIZADOR DE CABEÇALHOS (IMPORT ROBUSTO)
+       - remove acentos
+       - ignora maiúsc/minúsc
+       - troca símbolos (/, espaços) por underscore
+       Ex.: "DATA/HORA" -> "data_hora"
+            "PSP RESPONSÁVEL" -> "psp_responsavel"
+            "SOLICITAÇÃO" -> "solicitacao"
+       ============================================================ */
+    function keyNorm(s){
+      return (s || "")
+        .toString()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_") // troca / espaço etc por _
+        .replace(/^_+|_+$/g, "");
+    }
+
+    function rowNorm(r){
+      const out = {};
+      for (const k in r) out[keyNorm(k)] = r[k];
+      return out;
+    }
+
     document.getElementById("carregar-dados").addEventListener("click", () => {
       const input = document.createElement("input");
       input.type = "file";
@@ -1025,28 +1036,43 @@
 
           if (!Array.isArray(rows)) throw new Error("Formato inválido.");
 
-          /* ✅ IMPORT: aceita nomes antigos E os nomes reais da planilha */
-          const normalizados = rows.map(r => ({
-            id: (r["ID"] || r["Id"] || r["id"] || gerarId()).toString(),
-            dataHora: (r["Data/Hora"] || r["dataHora"] || r["DataHora"] || new Date().toLocaleString()).toString(),
-            atendimento: (r["Atendimento"] || r["atendimento"] || "").toString(),
-            telefone: (r["Telefone"] || r["telefone"] || "").toString(),
+          // ✅ agora normaliza cabeçalho e aceita qualquer variação
+          const normalizados = rows.map(raw => {
+            const r = rowNorm(raw);
 
-            vinculo: (r["Vínculo com a escola"] || r["Vínculo"] || r["Vinculo"] || r["vinculo"] || "").toString(),
+            return {
+              id: (r.id || gerarId()).toString(),
 
-            aluno: (r["Aluno"] || r["aluno"] || "").toString(),
-            idade: (r["Idade"] || r["idade"] || "").toString(),
-            ae: (r["AE"] || r["ae"] || "").toString(),
-            turno: (r["Turno"] || r["turno"] || "").toString(),
+              // aceita: DATA/HORA, Data/Hora, dataHora, DataHora...
+              dataHora: (r.data_hora || r.datahora || r.data_hora_ || r.datahora_ || new Date().toLocaleString()).toString(),
 
-            psp: (r["PSP responsável"] || r["PSP Responsável"] || r["PSP Responsavel"] || r["psp"] || "").toString(),
+              atendimento: (r.atendimento || "").toString(),
+              telefone: (r.telefone || "").toString(),
 
-            solicitacao: (r["Descrição da solicitação"] || r["Solicitação"] || r["Solicitacao"] || r["solicitacao"] || "").toString(),
+              // aceita: VÍNCULO, Vínculo, Vinculo, "Vínculo com a escola"
+              vinculo: (r.vinculo || r.vinculo_com_a_escola || "").toString(),
 
-            tipo: (r["Tipo de solicitação"] || r["Tipo"] || r["tipo"] || "").toString(),
+              aluno: (r.aluno || "").toString(),
+              idade: (r.idade || "").toString(),
 
-            status: (r["Status do atendimento"] || r["Status"] || r["status"] || "Pendente").toString()
-          }));
+              // AE
+              ae: (r.ae || "").toString(),
+
+              turno: (r.turno || "").toString(),
+
+              // aceita: PSP RESPONSÁVEL, PSP responsável
+              psp: (r.psp_responsavel || r.psp || "").toString(),
+
+              // aceita: SOLICITAÇÃO, "Descrição da solicitação"
+              solicitacao: (r.solicitacao || r.descricao_da_solicitacao || "").toString(),
+
+              // aceita: TIPO, "Tipo de solicitação"
+              tipo: (r.tipo || r.tipo_de_solicitacao || "").toString(),
+
+              // aceita: STATUS, "Status do atendimento"
+              status: (r.status || r.status_do_atendimento || "Pendente").toString()
+            };
+          });
 
           setAtendimentos(normalizados);
           listarAtendimentos();
