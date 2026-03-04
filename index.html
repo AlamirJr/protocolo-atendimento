@@ -372,7 +372,7 @@
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 740px; /* ✅ mais enxuto */
+      min-width: 860px;
       background: #fff;
     }
     thead th{
@@ -399,6 +399,17 @@
     }
     tbody tr:hover td{
       background: rgba(37,99,235,.04);
+    }
+
+    /* ID cell — fonte menor e cor discreta */
+    .td-id{
+      font-size: 11px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: nowrap;
+      max-width: 110px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Status badge */
@@ -577,6 +588,14 @@
       color: #111827;
       line-height: 1.4;
     }
+
+    /* ID no modal de detalhes — destaque sutil */
+    .detail-item.id-item span {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .03em;
+    }
   </style>
 </head>
 
@@ -738,7 +757,7 @@
 
             <div class="aviso" id="aviso-api" style="display:none;">
               Seu navegador não suporta sobrescrever o mesmo Excel automaticamente.
-              Use Chrome/Edge no computador para habilitar “Salvar no mesmo arquivo”.
+              Use Chrome/Edge no computador para habilitar "Salvar no mesmo arquivo".
             </div>
           </form>
         </div>
@@ -759,6 +778,7 @@
             <li>Agora a tabela mostra só campos essenciais. Use <b>Ver</b> para detalhes.</li>
             <li><b>Novo:</b> use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
             <li><b>Novo:</b> use o campo <b>Filtrar</b> acima da tabela para achar qualquer registro rápido.</li>
+            <li>A coluna <b>ID</b> exibe o identificador único de cada atendimento (útil para suporte e busca).</li>
             <li>Se ficar lento com muitos registros, prefira trabalhar por períodos e exportar.</li>
           </ul>
         </div>
@@ -770,14 +790,14 @@
       <div class="card-header">
         <div>
           <h2>Atendimentos registrados</h2>
-          <p class="hint">Tabela enxuta (detalhes no botão “Ver”).</p>
+          <p class="hint">Tabela enxuta (detalhes no botão "Ver").</p>
         </div>
       </div>
 
       <div class="card-body">
         <div class="table-tools">
           <div class="search">
-            <input id="filtro-tabela" type="text" placeholder="Filtrar por aluno, AE, PSP, telefone, tipo, status..." />
+            <input id="filtro-tabela" type="text" placeholder="Filtrar por aluno, AE, PSP, telefone, tipo, status, ID..." />
             <button class="btn btn-primary" id="limpar-filtro" type="button">Limpar filtro</button>
           </div>
           <div class="counter" id="contador-tabela">0 de 0</div>
@@ -787,8 +807,8 @@
           <table id="tabela-atendimentos">
             <thead>
               <tr>
-                <!-- ✅ TABELA ENXUTA -->
                 <th>Nº</th>
+                <th>ID</th>
                 <th>Data/Hora</th>
                 <th>Aluno</th>
                 <th>AE</th>
@@ -961,7 +981,6 @@
     const STORAGE_KEY = "atendimentos";
     let excelFileHandle = null;
 
-    // ✅ controle do modo edição
     let editId = null;
 
     function gerarId() {
@@ -1048,8 +1067,7 @@
         ? atendimentosAll
         : atendimentosAll.filter(a => {
             const blob = [
-              // ✅ filtro continua achando tudo, mesmo que não esteja visível na tabela
-              a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno, a.idade,
+              a.id, a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno, a.idade,
               a.ae, a.turno, a.psp, a.solicitacao, a.tipo, a.status
             ].join(" ").toLowerCase();
             return blob.includes(filtro);
@@ -1065,7 +1083,14 @@
         tdNum.textContent = String(idx + 1);
         row.appendChild(tdNum);
 
-        // ✅ TABELA ENXUTA: Data/Hora, Aluno, AE, PSP, Tipo
+        // ✅ ID — visível, estilo discreto (fonte mono, cor muted)
+        const tdId = document.createElement("td");
+        tdId.className = "td-id";
+        tdId.textContent = a.id ?? "";
+        tdId.title = a.id ?? ""; // tooltip com ID completo ao passar o mouse
+        row.appendChild(tdId);
+
+        // Demais colunas: Data/Hora, Aluno, AE, PSP, Tipo
         const cells = [
           a.dataHora,
           a.aluno,
@@ -1220,9 +1245,9 @@
       const grid = document.getElementById("ver-grid");
       grid.innerHTML = "";
 
-      function add(label, value, full=false, pre=false){
+      function add(label, value, full=false, pre=false, isId=false){
         const d = document.createElement("div");
-        d.className = "detail-item" + (full ? " full" : "");
+        d.className = "detail-item" + (full ? " full" : "") + (isId ? " id-item" : "");
         const b = document.createElement("b");
         b.textContent = label;
         d.appendChild(b);
@@ -1239,6 +1264,8 @@
         grid.appendChild(d);
       }
 
+      // ✅ ID aparece em destaque logo no topo dos detalhes
+      add("ID do atendimento", item.id, true, false, true);
       add("Data/Hora", item.dataHora);
       add("Status", item.status);
       add("Tipo", item.tipo);
