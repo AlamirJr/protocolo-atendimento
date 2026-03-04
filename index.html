@@ -372,7 +372,7 @@
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 980px;
+      min-width: 740px; /* ✅ mais enxuto */
       background: #fff;
     }
     thead th{
@@ -452,6 +452,7 @@
       cursor:pointer;
       font-weight: 700;
       transition: box-shadow .15s ease, transform .05s ease, background .15s ease;
+      white-space: nowrap;
     }
     .acoes-btn:hover{ box-shadow: 0 10px 18px rgba(17,24,39,.08); transform: translateY(-1px); }
     .acoes-btn:active{ transform: translateY(0); }
@@ -487,6 +488,94 @@
       font-size: 12px;
       color: var(--muted);
       font-weight: 700;
+    }
+
+    /* ✅ Modal base */
+    .modal{
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0,0,0,.45);
+      z-index: 9998;
+    }
+    .modal.open{ display:flex; }
+
+    .modal-card{
+      width: min(860px, 100%);
+      background: rgba(255,255,255,.98);
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 16px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.28);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+    .modal-header{
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(17,24,39,.03), transparent);
+    }
+    .modal-header h3{
+      margin:0;
+      font-size: 14px;
+      letter-spacing: .2px;
+    }
+    .modal-body{ padding: 14px; }
+    .modal-actions{
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      display:flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .btn-ghost{
+      border-color: #d1d5db;
+      background: #fff;
+    }
+
+    /* ✅ Modal "Ver" (detalhes) */
+    .detail-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 720px){
+      .detail-grid{ grid-template-columns: 1fr; }
+      table{ min-width: 0; }
+    }
+    .detail-item{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+    .detail-item b{
+      display:block;
+      font-size: 12px;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    .detail-item span{
+      font-size: 13px;
+      color: #111827;
+      word-break: break-word;
+    }
+    .detail-item.full{ grid-column: 1 / -1; }
+    .detail-item pre{
+      margin:0;
+      white-space: pre-wrap;
+      font-family: inherit;
+      font-size: 13px;
+      color: #111827;
+      line-height: 1.4;
     }
   </style>
 </head>
@@ -667,7 +756,7 @@
           <ul style="margin:0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55;">
             <li>Use <b>Escolher Excel</b> uma única vez; depois, <b>Salvar Excel</b> sobrescreve o mesmo arquivo.</li>
             <li>Para consulta rápida, a tabela é ordenada por <b>PSP</b> (exibição).</li>
-            <li>Para alterar situação, clique em <b>Alterar status</b> na linha.</li>
+            <li>Agora a tabela mostra só campos essenciais. Use <b>Ver</b> para detalhes.</li>
             <li><b>Novo:</b> use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
             <li><b>Novo:</b> use o campo <b>Filtrar</b> acima da tabela para achar qualquer registro rápido.</li>
             <li>Se ficar lento com muitos registros, prefira trabalhar por períodos e exportar.</li>
@@ -681,7 +770,7 @@
       <div class="card-header">
         <div>
           <h2>Atendimentos registrados</h2>
-          <p class="hint">Rolagem horizontal disponível (muitos campos).</p>
+          <p class="hint">Tabela enxuta (detalhes no botão “Ver”).</p>
         </div>
       </div>
 
@@ -698,18 +787,12 @@
           <table id="tabela-atendimentos">
             <thead>
               <tr>
-                <!-- ✅ NOVO: coluna Nº -->
+                <!-- ✅ TABELA ENXUTA -->
                 <th>Nº</th>
                 <th>Data/Hora</th>
-                <th>Atendimento</th>
-                <th>Telefone</th>
-                <th>Vínculo</th>
                 <th>Aluno</th>
-                <th>Idade</th>
                 <th>AE</th>
-                <th>Turno</th>
-                <th>PSP Responsável</th>
-                <th>Solicitação</th>
+                <th>PSP</th>
                 <th>Tipo</th>
                 <th>Status</th>
                 <th>Ações</th>
@@ -721,6 +804,115 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- ✅ MODAL EDITAR -->
+  <div class="modal" id="modal-editar" role="dialog" aria-modal="true" aria-labelledby="modal-editar-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-editar-title">Editar atendimento</h3>
+        <button class="acoes-btn" type="button" id="fechar-modal-editar" aria-label="Fechar">✕</button>
+      </div>
+
+      <form id="form-editar">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field col-6">
+              <label for="edit-atendimento">Atendimento</label>
+              <input type="text" id="edit-atendimento" required />
+            </div>
+
+            <div class="field col-6">
+              <label for="edit-telefone">Telefone</label>
+              <input type="text" id="edit-telefone" required inputmode="tel" />
+            </div>
+
+            <div class="field col-4">
+              <label for="edit-vinculo">Vínculo com a escola</label>
+              <select id="edit-vinculo" required>
+                <option value="">Selecione</option>
+                <option value="Diretor">Diretor</option>
+                <option value="Diretor Adjunto">Diretor Adjunto</option>
+                <option value="Mãe">Mãe</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+
+            <div class="field col-8">
+              <label for="edit-aluno">Aluno</label>
+              <input type="text" id="edit-aluno" required />
+            </div>
+
+            <div class="field col-3">
+              <label for="edit-idade">Idade</label>
+              <input type="number" id="edit-idade" min="0" required />
+            </div>
+
+            <div class="field col-3">
+              <label for="edit-ae">AE</label>
+              <input type="text" id="edit-ae" required />
+            </div>
+
+            <div class="field col-3">
+              <label for="edit-turno">Turno</label>
+              <input type="text" id="edit-turno" required />
+            </div>
+
+            <div class="field col-3">
+              <label for="edit-psp">PSP responsável</label>
+              <input type="text" id="edit-psp" required />
+            </div>
+
+            <div class="field col-12">
+              <label for="edit-solicitacao">Descrição da solicitação</label>
+              <textarea id="edit-solicitacao" rows="3" required></textarea>
+            </div>
+
+            <div class="field col-6">
+              <label for="edit-tipo">Tipo de solicitação</label>
+              <select id="edit-tipo" required>
+                <option value="">Selecione</option>
+                <option value="Pedido de Mediador">Pedido de Mediador</option>
+                <option value="Pedido de Cuidador">Pedido de Cuidador</option>
+              </select>
+            </div>
+
+            <div class="field col-6">
+              <label for="edit-status">Status do atendimento</label>
+              <select id="edit-status" required>
+                <option value="Pendente">Pendente</option>
+                <option value="Em andamento">Em andamento</option>
+                <option value="Concluído">Concluído</option>
+                <option value="Cancelado">Cancelado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" id="cancelar-edicao">Cancelar</button>
+          <button class="btn btn-solid" type="submit">Salvar alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ MODAL VER (DETALHES) -->
+  <div class="modal" id="modal-ver" role="dialog" aria-modal="true" aria-labelledby="modal-ver-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-ver-title">Detalhes do atendimento</h3>
+        <button class="acoes-btn" type="button" id="fechar-modal-ver" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-grid" id="ver-grid"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" id="fechar-ver-bottom">Fechar</button>
+      </div>
+    </div>
   </div>
 
   <!-- LOCK -->
@@ -768,6 +960,9 @@
   <script>
     const STORAGE_KEY = "atendimentos";
     let excelFileHandle = null;
+
+    // ✅ controle do modo edição
+    let editId = null;
 
     function gerarId() {
       if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -853,6 +1048,7 @@
         ? atendimentosAll
         : atendimentosAll.filter(a => {
             const blob = [
+              // ✅ filtro continua achando tudo, mesmo que não esteja visível na tabela
               a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno, a.idade,
               a.ae, a.turno, a.psp, a.solicitacao, a.tipo, a.status
             ].join(" ").toLowerCase();
@@ -861,26 +1057,20 @@
 
       if (contadorEl) contadorEl.textContent = `${atendimentos.length} de ${atendimentosAll.length}`;
 
-      // ✅ idx = posição (1..N) na lista filtrada/ordenada
       atendimentos.forEach((a, idx) => {
         const row = document.createElement("tr");
 
-        // ✅ NOVO: coluna Nº
+        // Nº
         const tdNum = document.createElement("td");
         tdNum.textContent = String(idx + 1);
         row.appendChild(tdNum);
 
+        // ✅ TABELA ENXUTA: Data/Hora, Aluno, AE, PSP, Tipo
         const cells = [
           a.dataHora,
-          a.atendimento,
-          a.telefone,
-          a.vinculo,
           a.aluno,
-          a.idade,
           a.ae,
-          a.turno,
           a.psp,
-          a.solicitacao,
           a.tipo
         ];
 
@@ -890,6 +1080,7 @@
           row.appendChild(td);
         });
 
+        // Status (badge)
         const tdStatus = document.createElement("td");
         const badge = document.createElement("span");
         const b = statusToBadge(a.status);
@@ -898,13 +1089,32 @@
         tdStatus.appendChild(badge);
         row.appendChild(tdStatus);
 
+        // Ações: Ver + Editar + Alterar status
         const tdAcoes = document.createElement("td");
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "acoes-btn";
-        btn.textContent = "Alterar status";
-        btn.addEventListener("click", () => editarStatus(a.id));
-        tdAcoes.appendChild(btn);
+
+        const btnVer = document.createElement("button");
+        btnVer.type = "button";
+        btnVer.className = "acoes-btn";
+        btnVer.textContent = "Ver";
+        btnVer.addEventListener("click", () => abrirVer(a.id));
+        tdAcoes.appendChild(btnVer);
+
+        const btnEditar = document.createElement("button");
+        btnEditar.type = "button";
+        btnEditar.className = "acoes-btn";
+        btnEditar.style.marginLeft = "8px";
+        btnEditar.textContent = "Editar";
+        btnEditar.addEventListener("click", () => abrirEditar(a.id));
+        tdAcoes.appendChild(btnEditar);
+
+        const btnStatus = document.createElement("button");
+        btnStatus.type = "button";
+        btnStatus.className = "acoes-btn";
+        btnStatus.style.marginLeft = "8px";
+        btnStatus.textContent = "Alterar status";
+        btnStatus.addEventListener("click", () => editarStatus(a.id));
+        tdAcoes.appendChild(btnStatus);
+
         row.appendChild(tdAcoes);
 
         tbody.appendChild(row);
@@ -924,6 +1134,137 @@
       setAtendimentos(atendimentos);
       listarAtendimentos();
     }
+
+    // ✅ EDITAR (Modal)
+    function abrirEditar(id){
+      const atendimentos = getAtendimentos();
+      const item = atendimentos.find(x => x.id === id);
+      if(!item) return;
+
+      editId = id;
+
+      document.getElementById("edit-atendimento").value = item.atendimento || "";
+      document.getElementById("edit-telefone").value = item.telefone || "";
+      document.getElementById("edit-vinculo").value = item.vinculo || "";
+      document.getElementById("edit-aluno").value = item.aluno || "";
+      document.getElementById("edit-idade").value = item.idade ?? "";
+      document.getElementById("edit-ae").value = item.ae || "";
+      document.getElementById("edit-turno").value = item.turno || "";
+      document.getElementById("edit-psp").value = item.psp || "";
+      document.getElementById("edit-solicitacao").value = item.solicitacao || "";
+      document.getElementById("edit-tipo").value = item.tipo || "";
+      document.getElementById("edit-status").value = item.status || "Pendente";
+
+      const modal = document.getElementById("modal-editar");
+      modal.classList.add("open");
+
+      setTimeout(() => document.getElementById("edit-atendimento").focus(), 0);
+    }
+
+    function fecharEditar(){
+      editId = null;
+      document.getElementById("modal-editar").classList.remove("open");
+    }
+
+    document.getElementById("fechar-modal-editar").addEventListener("click", fecharEditar);
+    document.getElementById("cancelar-edicao").addEventListener("click", fecharEditar);
+
+    document.getElementById("modal-editar").addEventListener("click", (e) => {
+      if (e.target && e.target.id === "modal-editar") fecharEditar();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      const editarOpen = document.getElementById("modal-editar").classList.contains("open");
+      const verOpen = document.getElementById("modal-ver").classList.contains("open");
+      if ((editarOpen || verOpen) && e.key === "Escape") {
+        if (editarOpen) fecharEditar();
+        if (verOpen) fecharVer();
+      }
+    });
+
+    document.getElementById("form-editar").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if(!editId) return;
+
+      const atendimentos = getAtendimentos();
+      const i = atendimentos.findIndex(x => x.id === editId);
+      if(i === -1) { fecharEditar(); return; }
+
+      atendimentos[i] = {
+        ...atendimentos[i],
+        atendimento: document.getElementById("edit-atendimento").value.trim(),
+        telefone: document.getElementById("edit-telefone").value.trim(),
+        vinculo: document.getElementById("edit-vinculo").value,
+        aluno: document.getElementById("edit-aluno").value.trim(),
+        idade: document.getElementById("edit-idade").value,
+        ae: document.getElementById("edit-ae").value.trim(),
+        turno: document.getElementById("edit-turno").value.trim(),
+        psp: document.getElementById("edit-psp").value.trim(),
+        solicitacao: document.getElementById("edit-solicitacao").value.trim(),
+        tipo: document.getElementById("edit-tipo").value,
+        status: document.getElementById("edit-status").value
+      };
+
+      setAtendimentos(atendimentos);
+      listarAtendimentos();
+      fecharEditar();
+      alert("Atendimento atualizado.");
+    });
+
+    // ✅ VER (detalhes em modal)
+    function abrirVer(id){
+      const atendimentos = getAtendimentos();
+      const item = atendimentos.find(x => x.id === id);
+      if(!item) return;
+
+      const grid = document.getElementById("ver-grid");
+      grid.innerHTML = "";
+
+      function add(label, value, full=false, pre=false){
+        const d = document.createElement("div");
+        d.className = "detail-item" + (full ? " full" : "");
+        const b = document.createElement("b");
+        b.textContent = label;
+        d.appendChild(b);
+
+        if(pre){
+          const p = document.createElement("pre");
+          p.textContent = (value ?? "").toString() || "-";
+          d.appendChild(p);
+        }else{
+          const s = document.createElement("span");
+          s.textContent = (value ?? "").toString() || "-";
+          d.appendChild(s);
+        }
+        grid.appendChild(d);
+      }
+
+      add("Data/Hora", item.dataHora);
+      add("Status", item.status);
+      add("Tipo", item.tipo);
+      add("PSP responsável", item.psp);
+      add("Aluno", item.aluno);
+      add("Idade", item.idade);
+      add("AE", item.ae);
+      add("Turno", item.turno);
+      add("Vínculo com a escola", item.vinculo);
+      add("Telefone", item.telefone);
+      add("Atendimento", item.atendimento, true);
+      add("Descrição da solicitação", item.solicitacao, true, true);
+
+      document.getElementById("modal-ver").classList.add("open");
+    }
+
+    function fecharVer(){
+      document.getElementById("modal-ver").classList.remove("open");
+    }
+
+    document.getElementById("fechar-modal-ver").addEventListener("click", fecharVer);
+    document.getElementById("fechar-ver-bottom").addEventListener("click", fecharVer);
+
+    document.getElementById("modal-ver").addEventListener("click", (e) => {
+      if (e.target && e.target.id === "modal-ver") fecharVer();
+    });
 
     document.getElementById("limpar-dados").addEventListener("click", () => {
       if (confirm("Deseja apagar todos os atendimentos?")) {
@@ -949,7 +1290,6 @@
       }
     });
 
-    // ✅ (opcional) export continua como antes (sem Nº fixo)
     function montarWorkbookAtendimentos(atendimentos) {
       const exportRows = atendimentos.map(a => ({
         "ID": a.id,
@@ -1000,10 +1340,6 @@
       }
     });
 
-    /* ============================================================
-       ✅ IMPORT ROBUSTO: normaliza cabeçalhos (aceita CAIXA ALTA,
-          acentos, /, espaços etc.)
-       ============================================================ */
     function keyNorm(s){
       return (s || "")
         .toString()
