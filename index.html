@@ -630,14 +630,14 @@
       </div>
 
       <div class="top-actions">
-        <button class="btn btn-primary" id="escolher-arquivo" type="button" title="Escolher arquivo Excel (uma vez)">
-          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Escolher Excel
+        <button class="btn btn-solid" id="salvar-dados" type="button" title="Salvar atendimentos no site (compartilhado)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 21v-8H7v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 3v4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Salvar no site
         </button>
 
-        <button class="btn btn-solid" id="salvar-dados" type="button" title="Salvar no mesmo Excel (sobrescrever)">
-          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 21v-8H7v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 3v4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Salvar Excel
+        <button class="btn btn-primary" id="exportar-excel" type="button" title="Exportar atendimentos como .xlsx">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Exportar Excel
         </button>
 
         <button class="btn btn-primary" id="carregar-dados" type="button" title="Carregar Atendimento (Excel)">
@@ -755,10 +755,7 @@
               </button>
             </div>
 
-            <div class="aviso" id="aviso-api" style="display:none;">
-              Seu navegador não suporta sobrescrever o mesmo Excel automaticamente.
-              Use Chrome/Edge no computador para habilitar "Salvar no mesmo arquivo".
-            </div>
+
           </form>
         </div>
       </section>
@@ -773,13 +770,13 @@
         </div>
         <div class="card-body">
           <ul style="margin:0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55;">
-            <li>Use <b>Escolher Excel</b> uma única vez; depois, <b>Salvar Excel</b> sobrescreve o mesmo arquivo.</li>
+            <li>Use <b>Salvar no site</b> para persistir os dados — ficam visíveis para todos que acessarem este link.</li>
+            <li>Use <b>Exportar Excel</b> para baixar um arquivo .xlsx com todos os registros.</li>
+            <li>Use <b>Importar Excel</b> para carregar registros de um arquivo .xlsx salvo anteriormente.</li>
             <li>Para consulta rápida, a tabela é ordenada por <b>PSP</b> (exibição).</li>
-            <li>Agora a tabela mostra só campos essenciais. Use <b>Ver</b> para detalhes.</li>
-            <li><b>Novo:</b> use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
-            <li><b>Novo:</b> use o campo <b>Filtrar</b> acima da tabela para achar qualquer registro rápido.</li>
-            <li>A coluna <b>ID</b> exibe o identificador único de cada atendimento (útil para suporte e busca).</li>
-            <li>Se ficar lento com muitos registros, prefira trabalhar por períodos e exportar.</li>
+            <li>A tabela mostra campos essenciais. Use <b>Ver</b> para detalhes completos.</li>
+            <li>Use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
+            <li>Use o campo <b>Filtrar</b> acima da tabela para achar qualquer registro rápido.</li>
           </ul>
         </div>
       </aside>
@@ -979,9 +976,9 @@
 
   <script>
     const STORAGE_KEY = "atendimentos";
-    let excelFileHandle = null;
-
     let editId = null;
+    // Cache local dos dados (carregado do storage compartilhado ao iniciar)
+    let _cache = [];
 
     function gerarId() {
       if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -989,24 +986,34 @@
     }
 
     function getAtendimentos() {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      return _cache.slice();
     }
 
     function setAtendimentos(lista) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+      _cache = lista;
     }
 
-    function suportaSobrescreverExcel() {
-      return !!window.showSaveFilePicker;
+    // ─── Storage persistente (compartilhado) ───────────────────────────────────
+    async function carregarDoStorage() {
+      try {
+        const res = await window.storage.get(STORAGE_KEY, true); // shared=true
+        _cache = res ? JSON.parse(res.value) : [];
+      } catch {
+        _cache = [];
+      }
+    }
+
+    async function salvarNoStorage() {
+      try {
+        await window.storage.set(STORAGE_KEY, JSON.stringify(_cache), true); // shared=true
+        return true;
+      } catch {
+        return false;
+      }
     }
 
     function mostrarAvisoSeNaoSuporta() {
-      const aviso = document.getElementById("aviso-api");
-      if (!suportaSobrescreverExcel()) {
-        aviso.style.display = "block";
-        document.getElementById("escolher-arquivo").disabled = true;
-        document.getElementById("salvar-dados").disabled = true;
-      }
+      // Nada a fazer — storage compartilhado funciona em todos os navegadores
     }
 
     document.getElementById("form-atendimento").addEventListener("submit", function (e) {
@@ -1034,6 +1041,8 @@
 
       listarAtendimentos();
       e.target.reset();
+      // Avisa que há dados não salvos
+      mostrarIndicadorNaoSalvo(true);
     });
 
     function statusToBadge(statusRaw){
@@ -1158,6 +1167,7 @@
 
       setAtendimentos(atendimentos);
       listarAtendimentos();
+      mostrarIndicadorNaoSalvo(true);
     }
 
     // ✅ EDITAR (Modal)
@@ -1233,7 +1243,7 @@
       setAtendimentos(atendimentos);
       listarAtendimentos();
       fecharEditar();
-      alert("Atendimento atualizado.");
+      mostrarIndicadorNaoSalvo(true);
     });
 
     // ✅ VER (detalhes em modal)
@@ -1293,27 +1303,25 @@
       if (e.target && e.target.id === "modal-ver") fecharVer();
     });
 
-    document.getElementById("limpar-dados").addEventListener("click", () => {
-      if (confirm("Deseja apagar todos os atendimentos?")) {
-        localStorage.removeItem(STORAGE_KEY);
-        listarAtendimentos();
+    // ─── Indicador de "não salvo" no botão ────────────────────────────────────
+    function mostrarIndicadorNaoSalvo(ativo) {
+      const btn = document.getElementById("salvar-dados");
+      if (!btn) return;
+      if (ativo) {
+        btn.style.boxShadow = "0 0 0 3px rgba(245,158,11,.55)";
+        btn.title = "Há alterações não salvas — clique para salvar no site";
+      } else {
+        btn.style.boxShadow = "";
+        btn.title = "Salvar atendimentos no site (compartilhado)";
       }
-    });
+    }
 
-    document.getElementById("escolher-arquivo").addEventListener("click", async () => {
-      try {
-        excelFileHandle = await window.showSaveFilePicker({
-          suggestedName: "atendimentos.xlsx",
-          types: [{
-            description: "Arquivo Excel",
-            accept: {
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
-            }
-          }]
-        });
-        alert("Arquivo selecionado. A partir de agora ele será sobrescrito ao salvar.");
-      } catch {
-        alert("Nenhum arquivo foi selecionado.");
+    document.getElementById("limpar-dados").addEventListener("click", async () => {
+      if (confirm("Deseja apagar todos os atendimentos? Esta ação também apaga do site (compartilhado).")) {
+        setAtendimentos([]);
+        await salvarNoStorage();
+        mostrarIndicadorNaoSalvo(false);
+        listarAtendimentos();
       }
     });
 
@@ -1340,6 +1348,7 @@
       return wb;
     }
 
+    // Salvar no storage compartilhado
     document.getElementById("salvar-dados").addEventListener("click", async () => {
       const atendimentos = getAtendimentos();
 
@@ -1348,23 +1357,32 @@
         return;
       }
 
-      if (!excelFileHandle) {
-        alert("Clique primeiro em 'Escolher Excel'.");
+      const btn = document.getElementById("salvar-dados");
+      btn.disabled = true;
+      btn.textContent = "Salvando…";
+
+      const ok = await salvarNoStorage();
+
+      btn.disabled = false;
+      btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 21v-8H7v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 3v4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Salvar no site`;
+
+      if (ok) {
+        mostrarIndicadorNaoSalvo(false);
+        alert("Dados salvos com sucesso! Visíveis para todos os usuários.");
+      } else {
+        alert("Falha ao salvar. Tente novamente.");
+      }
+    });
+
+    // Exportar .xlsx (download)
+    document.getElementById("exportar-excel").addEventListener("click", () => {
+      const atendimentos = getAtendimentos();
+      if (atendimentos.length === 0) {
+        alert("Não há atendimentos para exportar.");
         return;
       }
-
-      try {
-        const wb = montarWorkbookAtendimentos(atendimentos);
-        const buffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-        const writable = await excelFileHandle.createWritable();
-        await writable.write(buffer);
-        await writable.close();
-
-        alert("Excel atualizado (sobrescrito) com sucesso.");
-      } catch (err) {
-        alert("Falha ao sobrescrever o arquivo. Tente escolher o arquivo novamente.");
-      }
+      const wb = montarWorkbookAtendimentos(atendimentos);
+      XLSX.writeFile(wb, "atendimentos.xlsx");
     });
 
     function keyNorm(s){
@@ -1421,7 +1439,8 @@
 
           setAtendimentos(normalizados);
           listarAtendimentos();
-          alert("Atendimentos importados com sucesso!");
+          mostrarIndicadorNaoSalvo(true);
+          alert("Atendimentos importados com sucesso! Clique em 'Salvar no site' para persistir.");
         } catch (err) {
           alert("Arquivo inválido ou corrompido. Não foi possível importar.");
         }
@@ -1492,8 +1511,9 @@
       listarAtendimentos();
     });
 
-    window.onload = () => {
+    window.onload = async () => {
       mostrarAvisoSeNaoSuporta();
+      await carregarDoStorage();
       listarAtendimentos();
     };
   </script>
