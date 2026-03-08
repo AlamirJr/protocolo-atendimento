@@ -996,7 +996,7 @@
     // ─── JSONBin.io — storage compartilhado ──────────────────────────────────
     const JSONBIN_KEY = "$2a$10$UysIHXuZc3gSJiGlA..wruUCvTHTiHK7C9XVm5QHOAMGqV/ue2PFi";
     const JSONBIN_BASE = "https://api.jsonbin.io/v3";
-    let JSONBIN_BIN_ID = localStorage.getItem("jsonbin_bin_id") || null;
+    let JSONBIN_BIN_ID = localStorage.getItem("jsonbin_bin_id") || "69ad51f2ae596e708f6c7426";
 
     async function criarBinSeNecessario() {
       if (JSONBIN_BIN_ID) return true;
