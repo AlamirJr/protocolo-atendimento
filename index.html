@@ -981,8 +981,18 @@
     let _cache = [];
 
     function gerarId() {
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-      return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+      const atendimentos = _cache;
+      // Acha o maior número sequencial já usado no formato ATD-XXXX
+      let max = 0;
+      for (const a of atendimentos) {
+        const match = (a.id || "").match(/^ATD-(\d+)$/);
+        if (match) {
+          const n = parseInt(match[1], 10);
+          if (n > max) max = n;
+        }
+      }
+      const proximo = String(max + 1).padStart(4, "0");
+      return "ATD-" + proximo;
     }
 
     function getAtendimentos() {
