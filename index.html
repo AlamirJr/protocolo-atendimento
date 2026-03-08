@@ -993,27 +993,70 @@
       _cache = lista;
     }
 
-    // ─── Storage persistente (compartilhado) ───────────────────────────────────
-    async function carregarDoStorage() {
+    // ─── JSONBin.io — storage compartilhado ──────────────────────────────────
+    const JSONBIN_KEY = "$2a$10$UysIHXuZc3gSJiGlA..wruUCvTHTiHK7C9XVm5QHOAMGqV/ue2PFi";
+    const JSONBIN_BASE = "https://api.jsonbin.io/v3";
+    let JSONBIN_BIN_ID = localStorage.getItem("jsonbin_bin_id") || null;
+
+    async function criarBinSeNecessario() {
+      if (JSONBIN_BIN_ID) return true;
       try {
-        const res = await window.storage.get(STORAGE_KEY, true); // shared=true
-        _cache = res ? JSON.parse(res.value) : [];
-      } catch {
+        const res = await fetch(JSONBIN_BASE + "/b", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": JSONBIN_KEY,
+            "X-Bin-Name": "protocolo-atendimentos",
+            "X-Bin-Private": "true"
+          },
+          body: JSON.stringify({ atendimentos: [] })
+        });
+        const data = await res.json();
+        JSONBIN_BIN_ID = data.metadata && data.metadata.id;
+        if (JSONBIN_BIN_ID) {
+          localStorage.setItem("jsonbin_bin_id", JSONBIN_BIN_ID);
+          return true;
+        }
+        return false;
+      } catch(e) {
+        return false;
+      }
+    }
+
+    async function carregarDoStorage() {
+      const ok = await criarBinSeNecessario();
+      if (!ok) { _cache = []; return; }
+      try {
+        const res = await fetch(JSONBIN_BASE + "/b/" + JSONBIN_BIN_ID + "/latest", {
+          headers: { "X-Master-Key": JSONBIN_KEY }
+        });
+        const data = await res.json();
+        _cache = (data.record && data.record.atendimentos) || [];
+      } catch(e) {
         _cache = [];
       }
     }
 
     async function salvarNoStorage() {
+      const ok = await criarBinSeNecessario();
+      if (!ok) return false;
       try {
-        await window.storage.set(STORAGE_KEY, JSON.stringify(_cache), true); // shared=true
-        return true;
-      } catch {
+        const res = await fetch(JSONBIN_BASE + "/b/" + JSONBIN_BIN_ID, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": JSONBIN_KEY
+          },
+          body: JSON.stringify({ atendimentos: _cache })
+        });
+        return res.ok;
+      } catch(e) {
         return false;
       }
     }
 
     function mostrarAvisoSeNaoSuporta() {
-      // Nada a fazer — storage compartilhado funciona em todos os navegadores
+      // JSONBin funciona em todos os navegadores
     }
 
     document.getElementById("form-atendimento").addEventListener("submit", function (e) {
