@@ -48,9 +48,6 @@
       color: var(--text);
     }
 
-    /* =========================
-       🔒 TELA DE SENHA (LOCK)
-       ========================= */
     #lock{
       position: fixed;
       inset: 0;
@@ -127,7 +124,6 @@
       font-size: 12px;
     }
 
-    /* o app fica escondido até destravar */
     #app{ display:none; }
 
     .app{
@@ -136,7 +132,6 @@
       padding: 0 16px 28px;
     }
 
-    /* Topbar */
     .topbar{
       display:flex;
       align-items:center;
@@ -194,7 +189,6 @@
       align-items:center;
     }
 
-    /* Buttons */
     .btn{
       appearance:none;
       border:1px solid var(--border);
@@ -253,7 +247,6 @@
       display:inline-block;
     }
 
-    /* Layout grid */
     .grid{
       display:grid;
       grid-template-columns: 1.1fr .9fr;
@@ -266,7 +259,6 @@
       .topbar{ align-items:flex-start; }
     }
 
-    /* Cards */
     .card{
       background: var(--card);
       border: 1px solid var(--border);
@@ -297,7 +289,6 @@
       padding: 16px;
     }
 
-    /* Form */
     form{ margin:0; }
 
     .form-grid{
@@ -331,7 +322,6 @@
     }
     .muted{ color: var(--muted); font-size: 12px; margin: 0; }
 
-    /* Column spans */
     .col-12{ grid-column: span 12; }
     .col-8{ grid-column: span 8; }
     .col-6{ grid-column: span 6; }
@@ -350,7 +340,6 @@
     }
     .form-actions .btn{ flex: 1 1 180px; justify-content:center; }
 
-    /* Notice */
     .aviso{
       background: var(--warn-bg);
       border: 1px solid rgba(245, 158, 11, .35);
@@ -362,7 +351,6 @@
       color: #78350f;
     }
 
-    /* Table */
     .table-wrap{
       overflow:auto;
       border-radius: var(--radius);
@@ -372,7 +360,7 @@
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 860px;
+      min-width: 960px;
       background: #fff;
     }
     thead th{
@@ -401,7 +389,6 @@
       background: rgba(37,99,235,.04);
     }
 
-    /* ID cell — fonte menor e cor discreta */
     .td-id{
       font-size: 11px;
       color: var(--muted);
@@ -412,7 +399,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Status badge */
     .badge{
       display:inline-flex;
       align-items:center;
@@ -469,6 +455,17 @@
     .acoes-btn:active{ transform: translateY(0); }
     .acoes-btn:focus{ outline:none; box-shadow: var(--focus), 0 10px 18px rgba(17,24,39,.10); }
 
+    /* Botão remover com estilo vermelho sutil */
+    .acoes-btn-remover{
+      border-color: rgba(239,68,68,.30);
+      color: #991b1b;
+      background: rgba(254,226,226,.45);
+    }
+    .acoes-btn-remover:hover{
+      background: rgba(254,226,226,.85);
+      border-color: rgba(239,68,68,.55);
+    }
+
     .subline{
       display:flex;
       justify-content: space-between;
@@ -501,7 +498,6 @@
       font-weight: 700;
     }
 
-    /* ✅ Modal base */
     .modal{
       position: fixed;
       inset: 0;
@@ -552,7 +548,6 @@
       background: #fff;
     }
 
-    /* ✅ Modal "Ver" (detalhes) */
     .detail-grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -589,7 +584,6 @@
       line-height: 1.4;
     }
 
-    /* ID no modal de detalhes — destaque sutil */
     .detail-item.id-item span {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
@@ -754,8 +748,6 @@
                 Registrar atendimento
               </button>
             </div>
-
-
           </form>
         </div>
       </section>
@@ -777,6 +769,7 @@
             <li>A tabela mostra campos essenciais. Use <b>Ver</b> para detalhes completos.</li>
             <li>Use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
             <li>Use o campo <b>Filtrar</b> acima da tabela para achar qualquer registro rápido.</li>
+            <li>Use <b>Remover</b> (linha vermelha na tabela) para excluir um atendimento específico.</li>
           </ul>
         </div>
       </aside>
@@ -977,12 +970,10 @@
   <script>
     const STORAGE_KEY = "atendimentos";
     let editId = null;
-    // Cache local dos dados (carregado do storage compartilhado ao iniciar)
     let _cache = [];
 
     function gerarId() {
       const atendimentos = _cache;
-      // Acha o maior número sequencial já usado no formato ATD-XXXX
       let max = 0;
       for (const a of atendimentos) {
         const match = (a.id || "").match(/^ATD-(\d+)$/);
@@ -1094,7 +1085,6 @@
 
       listarAtendimentos();
       e.target.reset();
-      // Avisa que há dados não salvos
       mostrarIndicadorNaoSalvo(true);
     });
 
@@ -1145,22 +1135,15 @@
         tdNum.textContent = String(idx + 1);
         row.appendChild(tdNum);
 
-        // ✅ ID — visível, estilo discreto (fonte mono, cor muted)
+        // ID
         const tdId = document.createElement("td");
         tdId.className = "td-id";
         tdId.textContent = a.id ?? "";
-        tdId.title = a.id ?? ""; // tooltip com ID completo ao passar o mouse
+        tdId.title = a.id ?? "";
         row.appendChild(tdId);
 
-        // Demais colunas: Data/Hora, Aluno, AE, PSP, Tipo
-        const cells = [
-          a.dataHora,
-          a.aluno,
-          a.ae,
-          a.psp,
-          a.tipo
-        ];
-
+        // Demais colunas
+        const cells = [a.dataHora, a.aluno, a.ae, a.psp, a.tipo];
         cells.forEach((val) => {
           const td = document.createElement("td");
           td.textContent = val ?? "";
@@ -1176,7 +1159,7 @@
         tdStatus.appendChild(badge);
         row.appendChild(tdStatus);
 
-        // Ações: Ver + Editar + Alterar status
+        // Ações: Ver + Editar + Alterar status + Remover
         const tdAcoes = document.createElement("td");
 
         const btnVer = document.createElement("button");
@@ -1202,10 +1185,32 @@
         btnStatus.addEventListener("click", () => editarStatus(a.id));
         tdAcoes.appendChild(btnStatus);
 
-        row.appendChild(tdAcoes);
+        // ✅ NOVO: Botão Remover
+        const btnRemover = document.createElement("button");
+        btnRemover.type = "button";
+        btnRemover.className = "acoes-btn acoes-btn-remover";
+        btnRemover.style.marginLeft = "8px";
+        btnRemover.textContent = "Remover";
+        btnRemover.addEventListener("click", () => removerAtendimento(a.id, a.aluno));
+        tdAcoes.appendChild(btnRemover);
 
+        row.appendChild(tdAcoes);
         tbody.appendChild(row);
       });
+    }
+
+    // ✅ NOVA FUNÇÃO: Remover atendimento por ID
+    function removerAtendimento(id, nomeAluno) {
+      const label = nomeAluno ? `"${nomeAluno}"` : `ID ${id}`;
+      if (!confirm(`Deseja remover o atendimento de ${label}?\n\nEsta ação não pode ser desfeita localmente. Lembre-se de clicar em "Salvar no site" para persistir a remoção.`)) {
+        return;
+      }
+
+      const atendimentos = getAtendimentos();
+      const novaLista = atendimentos.filter(a => a.id !== id);
+      setAtendimentos(novaLista);
+      listarAtendimentos();
+      mostrarIndicadorNaoSalvo(true);
     }
 
     function editarStatus(id) {
@@ -1327,7 +1332,6 @@
         grid.appendChild(d);
       }
 
-      // ✅ ID aparece em destaque logo no topo dos detalhes
       add("ID do atendimento", item.id, true, false, true);
       add("Data/Hora", item.dataHora);
       add("Status", item.status);
@@ -1356,7 +1360,7 @@
       if (e.target && e.target.id === "modal-ver") fecharVer();
     });
 
-    // ─── Indicador de "não salvo" no botão ────────────────────────────────────
+    // ─── Indicador de "não salvo" ────────────────────────────────────
     function mostrarIndicadorNaoSalvo(ativo) {
       const btn = document.getElementById("salvar-dados");
       if (!btn) return;
@@ -1427,7 +1431,7 @@
       }
     });
 
-    // Exportar .xlsx (download)
+    // Exportar .xlsx
     document.getElementById("exportar-excel").addEventListener("click", () => {
       const atendimentos = getAtendimentos();
       if (atendimentos.length === 0) {
