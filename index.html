@@ -466,6 +466,17 @@
       border-color: rgba(239,68,68,.55);
     }
 
+    /* Container flex para os botões de ação */
+    .acoes-wrap{
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .acoes-wrap .acoes-btn{
+      margin-left: 0 !important;
+    }
+
     .subline{
       display:flex;
       justify-content: space-between;
@@ -1161,39 +1172,38 @@
 
         // Ações: Ver + Editar + Alterar status + Remover
         const tdAcoes = document.createElement("td");
+        const acoesFlex = document.createElement("div");
+        acoesFlex.className = "acoes-wrap";
 
         const btnVer = document.createElement("button");
         btnVer.type = "button";
         btnVer.className = "acoes-btn";
         btnVer.textContent = "Ver";
         btnVer.addEventListener("click", () => abrirVer(a.id));
-        tdAcoes.appendChild(btnVer);
+        acoesFlex.appendChild(btnVer);
 
         const btnEditar = document.createElement("button");
         btnEditar.type = "button";
         btnEditar.className = "acoes-btn";
-        btnEditar.style.marginLeft = "8px";
         btnEditar.textContent = "Editar";
         btnEditar.addEventListener("click", () => abrirEditar(a.id));
-        tdAcoes.appendChild(btnEditar);
+        acoesFlex.appendChild(btnEditar);
 
         const btnStatus = document.createElement("button");
         btnStatus.type = "button";
         btnStatus.className = "acoes-btn";
-        btnStatus.style.marginLeft = "8px";
         btnStatus.textContent = "Alterar status";
         btnStatus.addEventListener("click", () => editarStatus(a.id));
-        tdAcoes.appendChild(btnStatus);
+        acoesFlex.appendChild(btnStatus);
 
-        // ✅ NOVO: Botão Remover
         const btnRemover = document.createElement("button");
         btnRemover.type = "button";
         btnRemover.className = "acoes-btn acoes-btn-remover";
-        btnRemover.style.marginLeft = "8px";
         btnRemover.textContent = "Remover";
         btnRemover.addEventListener("click", () => removerAtendimento(a.id, a.aluno));
-        tdAcoes.appendChild(btnRemover);
+        acoesFlex.appendChild(btnRemover);
 
+        tdAcoes.appendChild(acoesFlex);
         row.appendChild(tdAcoes);
         tbody.appendChild(row);
       });
