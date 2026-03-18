@@ -1,764 +1,538 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel com Controle de Acesso</title>
-
-  <style>
-    :root{
-      --bg: #f6f7fb;
-      --card: #ffffff;
-      --text: #111827;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --shadow: 0 12px 30px rgba(17,24,39,.08);
-      --shadow-sm: 0 6px 18px rgba(17,24,39,.08);
-      --radius: 14px;
-
-      --primary: #2563eb;
-      --primary-2: #1d4ed8;
-
-      --danger: #ef4444;
-      --danger-2: #dc2626;
-
-      --success: #16a34a;
-      --success-2: #15803d;
-
-      --warn: #d97706;
-      --warn-bg: #fff7ed;
-
-      --gray-btn: #374151;
-      --gray-btn-2: #1f2937;
-    }
-
-    *{
-      box-sizing: border-box;
-    }
-
-    body{
-      margin:0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .container{
-      width:min(1200px, 94%);
-      margin: 24px auto;
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:20px;
-    }
-
-    .login-wrap{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
-    }
-
-    .login-card{
-      width:min(420px, 100%);
-    }
-
-    h1,h2,h3{
-      margin:0 0 12px 0;
-    }
-
-    .subtitle{
-      color:var(--muted);
-      margin-bottom:18px;
-      line-height:1.5;
-    }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap:14px;
-    }
-
-    .form-group{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
-    .form-group.full{
-      grid-column:1 / -1;
-    }
-
-    label{
-      font-size:14px;
-      font-weight:600;
-    }
-
-    input, select, textarea{
-      width:100%;
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:12px 12px;
-      font-size:14px;
-      outline:none;
-      background:#fff;
-    }
-
-    input:focus, select:focus, textarea:focus{
-      border-color:var(--primary);
-      box-shadow:0 0 0 3px rgba(37,99,235,.12);
-    }
-
-    .toolbar{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:16px;
-    }
-
-    .toolbar-left,
-    .toolbar-right{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      background:#eff6ff;
-      color:#1d4ed8;
-      border:1px solid #bfdbfe;
-      padding:8px 12px;
-      border-radius:999px;
-      font-size:13px;
-      font-weight:700;
-    }
-
-    .badge.user{
-      background:#ecfdf5;
-      color:#166534;
-      border-color:#bbf7d0;
-    }
-
-    .muted{
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .btn{
-      appearance:none;
-      border:none;
-      border-radius:10px;
-      padding:11px 14px;
-      font-size:14px;
-      font-weight:700;
-      cursor:pointer;
-      transition:.18s ease;
-    }
-
-    .btn:hover{
-      transform:translateY(-1px);
-    }
-
-    .btn-primary{
-      background:var(--primary);
-      color:#fff;
-    }
-
-    .btn-primary:hover{
-      background:var(--primary-2);
-    }
-
-    .btn-danger{
-      background:var(--danger);
-      color:#fff;
-    }
-
-    .btn-danger:hover{
-      background:var(--danger-2);
-    }
-
-    .btn-success{
-      background:var(--success);
-      color:#fff;
-    }
-
-    .btn-success:hover{
-      background:var(--success-2);
-    }
-
-    .btn-gray{
-      background:var(--gray-btn);
-      color:#fff;
-    }
-
-    .btn-gray:hover{
-      background:var(--gray-btn-2);
-    }
-
-    .btn-outline{
-      background:#fff;
-      color:var(--text);
-      border:1px solid var(--border);
-    }
-
-    .btn-outline:hover{
-      background:#f9fafb;
-    }
-
-    .error{
-      color:#b91c1c;
-      background:#fef2f2;
-      border:1px solid #fecaca;
-      border-radius:10px;
-      padding:10px 12px;
-      margin-top:12px;
-      font-size:14px;
-      display:none;
-    }
-
-    .info-box{
-      background:var(--warn-bg);
-      color:#9a3412;
-      border:1px solid #fed7aa;
-      border-radius:12px;
-      padding:12px 14px;
-      margin:14px 0 0 0;
-      font-size:14px;
-    }
-
-    .table-wrap{
-      overflow:auto;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:#fff;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:900px;
-    }
-
-    thead th{
-      background:#f9fafb;
-      text-align:left;
-      font-size:13px;
-      padding:12px;
-      border-bottom:1px solid var(--border);
-      white-space:nowrap;
-    }
-
-    tbody td{
-      font-size:14px;
-      padding:12px;
-      border-bottom:1px solid var(--border);
-      vertical-align:top;
-    }
-
-    tbody tr:hover{
-      background:#fafafa;
-    }
-
-    .actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-
-    .empty-state{
-      padding:26px;
-      text-align:center;
-      color:var(--muted);
-    }
-
-    .header-app{
-      display:flex;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .app-title p{
-      margin:6px 0 0 0;
-      color:var(--muted);
-    }
-
-    .search-box{
-      min-width:260px;
-    }
-
-    .hidden{
-      display:none !important;
-    }
-
-    @media (max-width: 768px){
-      .form-grid{
-        grid-template-columns:1fr;
-      }
-
-      .toolbar{
-        align-items:stretch;
-      }
-
-      .toolbar-left,
-      .toolbar-right{
-        width:100%;
-      }
-
-      .toolbar-right .search-box{
-        width:100%;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- LOGIN -->
-  <div id="loginScreen" class="login-wrap">
-    <div class="card login-card">
-      <h2>Acesso ao Sistema</h2>
-      <div class="subtitle">
-        Entre com a senha para acessar o painel.
-      </div>
-
-      <div class="form-group">
-        <label for="senha">Senha</label>
-        <input type="password" id="senha" placeholder="Digite sua senha" />
-      </div>
-
-      <div style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="login()">Entrar</button>
-      </div>
-
-      <div id="loginErro" class="error"></div>
-
-      <div class="info-box">
-        Perfil <strong>admin</strong>: acesso total.<br>
-        Perfil <strong>usuário</strong>: pode inserir e editar, mas não pode excluir linhas.
-      </div>
-    </div>
-  </div>
-
-  <!-- APP -->
-  <div id="appScreen" class="hidden">
-    <div class="container">
-      <div class="header-app">
-        <div class="app-title">
-          <h1>Painel de Registros</h1>
-          <p>Controle com perfis de administrador e usuário.</p>
-        </div>
-
-        <div class="toolbar-right">
-          <span id="perfilBadge" class="badge">Perfil</span>
-          <button class="btn btn-gray" onclick="logout()">Sair</button>
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:18px;">
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <button class="btn btn-success" onclick="novoRegistro()">Novo registro</button>
-            <button class="btn btn-outline" onclick="limparFormulario()">Limpar formulário</button>
-          </div>
-
-          <div class="toolbar-right">
-            <input
-              id="busca"
-              class="search-box"
-              type="text"
-              placeholder="Buscar por nome, CPF, observação..."
-              oninput="renderTabela()"
-            />
-          </div>
-        </div>
-
-        <form id="registroForm" onsubmit="salvarRegistro(event)">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="numero">Número</label>
-              <input type="number" id="numero" placeholder="Ex.: 1" />
-            </div>
-
-            <div class="form-group">
-              <label for="nome">Nome</label>
-              <input type="text" id="nome" placeholder="Nome completo" required />
-            </div>
-
-            <div class="form-group">
-              <label for="cpf">CPF</label>
-              <input type="text" id="cpf" placeholder="000.000.000-00" />
-            </div>
-
-            <div class="form-group">
-              <label for="turno">Turno</label>
-              <select id="turno">
-                <option value="">Selecione</option>
-                <option>Manhã</option>
-                <option>Tarde</option>
-                <option>Noite</option>
-                <option>Integral</option>
-              </select>
-            </div>
-
-            <div class="form-group full">
-              <label for="observacao">Observação</label>
-              <textarea id="observacao" rows="3" placeholder="Digite uma observação"></textarea>
-            </div>
-          </div>
-
-          <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-primary" type="submit">Salvar</button>
-            <button class="btn btn-outline" type="button" onclick="cancelarEdicao()">Cancelar edição</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="card">
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <h3 style="margin:0;">Registros</h3>
-            <span id="totalRegistros" class="muted"></span>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:80px;">Nº</th>
-                <th>Nome</th>
-                <th style="width:170px;">CPF</th>
-                <th style="width:120px;">Turno</th>
-                <th>Observação</th>
-                <th style="width:180px;">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-
-          <div id="emptyState" class="empty-state hidden">
-            Nenhum registro encontrado.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    /* =========================
-       CONFIGURAÇÃO DE ACESSO
-    ========================= */
-    const AUTH = {
-      admin: {
-        password: "admin",
-        role: "admin",
-        label: "Administrador"
-      },
-      user: {
-        password: "usuario123",
-        role: "user",
-        label: "Usuário"
-      }
-    };
-
-    /* =========================
-       ESTADO DA APLICAÇÃO
-    ========================= */
-    let CURRENT_ROLE = null;
-    let CURRENT_LABEL = "";
-    let dados = JSON.parse(localStorage.getItem("painel_dados")) || [];
-    let editIndex = null;
-
-    /* =========================
-       ELEMENTOS
-    ========================= */
-    const loginScreen = document.getElementById("loginScreen");
-    const appScreen = document.getElementById("appScreen");
-    const loginErro = document.getElementById("loginErro");
-    const perfilBadge = document.getElementById("perfilBadge");
-    const tbody = document.getElementById("tbody");
-    const emptyState = document.getElementById("emptyState");
-    const totalRegistros = document.getElementById("totalRegistros");
-
-    const numeroEl = document.getElementById("numero");
-    const nomeEl = document.getElementById("nome");
-    const cpfEl = document.getElementById("cpf");
-    const turnoEl = document.getElementById("turno");
-    const observacaoEl = document.getElementById("observacao");
-    const buscaEl = document.getElementById("busca");
-
-    /* =========================
-       LOGIN / LOGOUT
-    ========================= */
-    function login() {
-      const senha = document.getElementById("senha").value.trim();
-
-      loginErro.style.display = "none";
-      loginErro.textContent = "";
-
-      if (senha === AUTH.admin.password) {
-        CURRENT_ROLE = AUTH.admin.role;
-        CURRENT_LABEL = AUTH.admin.label;
-        entrarSistema();
-        return;
-      }
-
-      if (senha === AUTH.user.password) {
-        CURRENT_ROLE = AUTH.user.role;
-        CURRENT_LABEL = AUTH.user.label;
-        entrarSistema();
-        return;
-      }
-
-      loginErro.textContent = "Senha inválida.";
-      loginErro.style.display = "block";
-    }
-
-    function entrarSistema() {
-      loginScreen.classList.add("hidden");
-      appScreen.classList.remove("hidden");
-      aplicarPerfil();
-      renderTabela();
-    }
-
-    function logout() {
-      CURRENT_ROLE = null;
-      CURRENT_LABEL = "";
-      editIndex = null;
-
-      document.getElementById("senha").value = "";
-      loginScreen.classList.remove("hidden");
-      appScreen.classList.add("hidden");
-      limparFormulario();
-    }
-
-    /* =========================
-       PERFIL / PERMISSÕES
-    ========================= */
-    function aplicarPerfil() {
-      perfilBadge.textContent = `Perfil: ${CURRENT_LABEL}`;
-
-      if (CURRENT_ROLE === "admin") {
-        perfilBadge.className = "badge";
-      } else {
-        perfilBadge.className = "badge user";
-      }
-    }
-
-    function usuarioPodeExcluir() {
-      return CURRENT_ROLE === "admin";
-    }
-
-    /* =========================
-       FORMULÁRIO
-    ========================= */
-    function novoRegistro() {
-      limparFormulario();
-      nomeEl.focus();
-    }
-
-    function limparFormulario() {
-      document.getElementById("registroForm").reset();
-      editIndex = null;
-      numeroEl.value = "";
-      nomeEl.value = "";
-      cpfEl.value = "";
-      turnoEl.value = "";
-      observacaoEl.value = "";
-    }
-
-    function cancelarEdicao() {
-      limparFormulario();
-    }
-
-    function salvarRegistro(event) {
-      event.preventDefault();
-
-      const registro = {
-        numero: numeroEl.value.trim(),
-        nome: nomeEl.value.trim(),
-        cpf: cpfEl.value.trim(),
-        turno: turnoEl.value.trim(),
-        observacao: observacaoEl.value.trim()
-      };
-
-      if (!registro.nome) {
-        alert("Preencha o nome.");
-        return;
-      }
-
-      if (editIndex !== null) {
-        dados[editIndex] = registro;
-      } else {
-        dados.push(registro);
-      }
-
-      salvarDados();
-      renderTabela();
-      limparFormulario();
-    }
-
-    function editarLinha(index) {
-      const item = getDadosFiltrados()[index];
-      if (!item) return;
-
-      const realIndex = dados.findIndex(reg =>
-        reg.numero === item.numero &&
-        reg.nome === item.nome &&
-        reg.cpf === item.cpf &&
-        reg.turno === item.turno &&
-        reg.observacao === item.observacao
-      );
-
-      if (realIndex === -1) return;
-
-      editIndex = realIndex;
-
-      numeroEl.value = dados[realIndex].numero || "";
-      nomeEl.value = dados[realIndex].nome || "";
-      cpfEl.value = dados[realIndex].cpf || "";
-      turnoEl.value = dados[realIndex].turno || "";
-      observacaoEl.value = dados[realIndex].observacao || "";
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function excluirLinha(index) {
-      if (!usuarioPodeExcluir()) {
-        alert("Você não tem permissão para excluir linhas.");
-        return;
-      }
-
-      const item = getDadosFiltrados()[index];
-      if (!item) return;
-
-      const realIndex = dados.findIndex(reg =>
-        reg.numero === item.numero &&
-        reg.nome === item.nome &&
-        reg.cpf === item.cpf &&
-        reg.turno === item.turno &&
-        reg.observacao === item.observacao
-      );
-
-      if (realIndex === -1) return;
-
-      const confirmar = confirm(`Deseja realmente excluir o registro de "${dados[realIndex].nome}"?`);
-      if (!confirmar) return;
-
-      dados.splice(realIndex, 1);
-      salvarDados();
-      renderTabela();
-      limparFormulario();
-    }
-
-    /* =========================
-       DADOS
-    ========================= */
-    function salvarDados() {
-      localStorage.setItem("painel_dados", JSON.stringify(dados));
-    }
-
-    function getDadosFiltrados() {
-      const termo = buscaEl.value.trim().toLowerCase();
-
-      if (!termo) return dados;
-
-      return dados.filter(item => {
-        const numero = String(item.numero || "").toLowerCase();
-        const nome = String(item.nome || "").toLowerCase();
-        const cpf = String(item.cpf || "").toLowerCase();
-        const turno = String(item.turno || "").toLowerCase();
-        const observacao = String(item.observacao || "").toLowerCase();
-
-        return (
-          numero.includes(termo) ||
-          nome.includes(termo) ||
-          cpf.includes(termo) ||
-          turno.includes(termo) ||
-          observacao.includes(termo)
-        );
-      });
-    }
-
-    /* =========================
-       TABELA
-    ========================= */
-    function renderTabela() {
-      const lista = getDadosFiltrados();
-      tbody.innerHTML = "";
-
-      totalRegistros.textContent = `${lista.length} registro(s)`;
-
-      if (lista.length === 0) {
-        emptyState.classList.remove("hidden");
-        return;
-      }
-
-      emptyState.classList.add("hidden");
-
-      lista.forEach((item, index) => {
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-          <td>${escapeHtml(item.numero || "")}</td>
-          <td>${escapeHtml(item.nome || "")}</td>
-          <td>${escapeHtml(item.cpf || "")}</td>
-          <td>${escapeHtml(item.turno || "")}</td>
-          <td>${escapeHtml(item.observacao || "")}</td>
-          <td>
-            <div class="actions">
-              <button class="btn btn-primary" type="button" onclick="editarLinha(${index})">Editar</button>
-              ${
-                usuarioPodeExcluir()
-                  ? `<button class="btn btn-danger" type="button" onclick="excluirLinha(${index})">Excluir</button>`
-                  : ``
-              }
-            </div>
-          </td>
-        `;
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    /* =========================
-       UTILITÁRIOS
-    ========================= */
-    function escapeHtml(text) {
-      return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    /* =========================
-       ENTER NO LOGIN
-    ========================= */
-    document.getElementById("senha").addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        login();
-      }
-    });
-
-    /* =========================
-       INICIALIZAÇÃO
-    ========================= */
-    renderTabela();
-  </script>
-</body>
-</html>
+# ============================================================
+# PROTOCOLO DE ATENDIMENTO — EDUCAÇÃO ESPECIAL
+# Google Colab + Google Drive + Excel
+# Programador: Alamir R. R. Júnior
+# ============================================================
+
+!pip -q install openpyxl ipywidgets pandas
+
+import os
+import re
+import openpyxl
+import pandas as pd
+from datetime import datetime
+import ipywidgets as widgets
+from IPython.display import display, clear_output
+
+# ============================================================
+# 1) GOOGLE DRIVE + CAMINHO DO ARQUIVO
+# ============================================================
+from google.colab import drive
+drive.mount("/content/drive")
+
+EXCEL_PATH = "/content/drive/MyDrive/automacoes_inclusiva/ProtocoloAtendimento/atendimento.xlsx"
+SHEET_NAME = "Atendimentos"
+MAP_SHEET = "ID_MAP"
+
+EXPECTED_HEADERS = [
+    "ID","Data/Hora","Atendimento","Telefone","Vínculo","Aluno","Idade",
+    "AE","Turno","PSP Responsável","Solicitação","Tipo","Status"
+]
+
+PREFIX = "GEE"
+SEQ_WIDTH = 6  # GEE-2026-000001
+
+print("✅ Arquivo:", EXCEL_PATH)
+print("📌 Existe?", os.path.exists(EXCEL_PATH))
+
+# ============================================================
+# 2) FUNÇÕES BÁSICAS
+# ============================================================
+def load_wb():
+    if not os.path.exists(EXCEL_PATH):
+        raise FileNotFoundError(f"Arquivo não encontrado: {EXCEL_PATH}")
+    wb = openpyxl.load_workbook(EXCEL_PATH)
+    if SHEET_NAME not in wb.sheetnames:
+        raise ValueError(f"Aba '{SHEET_NAME}' não existe. Abas disponíveis: {wb.sheetnames}")
+    ws = wb[SHEET_NAME]
+    return wb, ws
+
+def validate_or_fix_headers(ws):
+    current = [ws.cell(1, c).value for c in range(1, len(EXPECTED_HEADERS) + 1)]
+
+    if all(v is None or str(v).strip() == "" for v in current):
+        for c, h in enumerate(EXPECTED_HEADERS, start=1):
+            ws.cell(1, c).value = h
+        return
+
+    if current != EXPECTED_HEADERS:
+        raise ValueError(
+            "Cabeçalhos da planilha não batem com o esperado.\n"
+            f"Esperado: {EXPECTED_HEADERS}\n"
+            f"Encontrado: {current}"
+        )
+
+def normalize_phone(s: str) -> str:
+    if not s:
+        return ""
+    return re.sub(r"\D", "", str(s))
+
+# ============================================================
+# 3) ID INSTITUCIONAL
+# ============================================================
+def is_institutional_id(pid: str):
+    if not pid:
+        return False
+    s = str(pid).strip()
+    return re.fullmatch(rf"{re.escape(PREFIX)}-\d{{4}}-\d{{{SEQ_WIDTH}}}", s) is not None
+
+def parse_seq_from_id(pid: str, year: int):
+    if not pid:
+        return None
+    s = str(pid).strip()
+    m = re.fullmatch(rf"{re.escape(PREFIX)}-{year}-(\d{{{SEQ_WIDTH}}})", s)
+    if not m:
+        return None
+    return int(m.group(1))
+
+def next_institutional_id(ws, year: int):
+    max_seq = 0
+    for r in range(2, ws.max_row + 1):
+        v = ws.cell(r, 1).value
+        seq = parse_seq_from_id(v, year)
+        if seq is not None:
+            max_seq = max(max_seq, seq)
+    new_seq = max_seq + 1
+    return f"{PREFIX}-{year}-{new_seq:0{SEQ_WIDTH}d}"
+
+def get_year_from_datetime_cell(v):
+    if isinstance(v, datetime):
+        return v.year
+    s = str(v).strip()
+    m = re.search(r"(\d{2})/(\d{2})/(\d{4})", s)
+    if m:
+        return int(m.group(3))
+    return datetime.now().year
+
+# ============================================================
+# 4) CRUD
+# ============================================================
+def append_attendance(values_by_header: dict):
+    wb, ws = load_wb()
+    validate_or_fix_headers(ws)
+
+    year = datetime.now().year
+    new_id = next_institutional_id(ws, year)
+    now_str = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    row = [
+        new_id,
+        now_str,
+        values_by_header.get("Atendimento","").strip(),
+        normalize_phone(values_by_header.get("Telefone","")),
+        values_by_header.get("Vínculo",""),
+        values_by_header.get("Aluno","").strip(),
+        values_by_header.get("Idade",""),
+        values_by_header.get("AE",""),
+        values_by_header.get("Turno",""),
+        values_by_header.get("PSP Responsável","").strip(),
+        values_by_header.get("Solicitação","").strip(),
+        values_by_header.get("Tipo",""),
+        values_by_header.get("Status","")
+    ]
+
+    ws.append(row)
+    wb.save(EXCEL_PATH)
+    wb.close()
+    return new_id, now_str
+
+def read_df():
+    wb, ws = load_wb()
+    validate_or_fix_headers(ws)
+    data = list(ws.values)
+    wb.close()
+
+    if len(data) <= 1:
+        return pd.DataFrame(columns=EXPECTED_HEADERS)
+
+    return pd.DataFrame(data[1:], columns=data[0])
+
+def update_status_by_id(protocolo_id: str, new_status: str):
+    wb, ws = load_wb()
+    validate_or_fix_headers(ws)
+
+    target = str(protocolo_id).strip()
+    if not target:
+        wb.close()
+        raise ValueError("Informe um ID válido.")
+
+    found_row = None
+    for r in range(2, ws.max_row + 1):
+        cell_val = ws.cell(r, 1).value
+        if cell_val is None:
+            continue
+        if str(cell_val).strip() == target:
+            found_row = r
+            break
+
+    if found_row is None:
+        sample = []
+        for r in range(2, min(ws.max_row + 1, 20)):
+            sample.append(ws.cell(r, 1).value)
+        wb.close()
+        raise ValueError(f"ID '{target}' não encontrado. Exemplos: {sample}")
+
+    ws.cell(found_row, 13).value = new_status
+    wb.save(EXCEL_PATH)
+    wb.close()
+
+# ============================================================
+# 5) MIGRAÇÃO DE IDs ANTIGOS
+# ============================================================
+def ensure_map_sheet(wb):
+    if MAP_SHEET not in wb.sheetnames:
+        map_ws = wb.create_sheet(MAP_SHEET)
+        map_ws.append(["Data/Hora Migração", "Linha", "ID_antigo", "ID_novo"])
+    else:
+        map_ws = wb[MAP_SHEET]
+    return map_ws
+
+def count_non_institutional_ids():
+    wb, ws = load_wb()
+    validate_or_fix_headers(ws)
+
+    count = 0
+    examples = []
+
+    for r in range(2, ws.max_row + 1):
+        old_id = ws.cell(r, 1).value
+        if old_id and not is_institutional_id(old_id):
+            count += 1
+            if len(examples) < 10:
+                examples.append(str(old_id))
+
+    wb.close()
+    return count, examples
+
+def migrate_old_ids():
+    wb, ws = load_wb()
+    validate_or_fix_headers(ws)
+    map_ws = ensure_map_sheet(wb)
+
+    changed = 0
+
+    for r in range(2, ws.max_row + 1):
+        old_id = ws.cell(r, 1).value
+        if not old_id:
+            continue
+
+        if is_institutional_id(old_id):
+            continue
+
+        year = get_year_from_datetime_cell(ws.cell(r, 2).value)
+        new_id = next_institutional_id(ws, year)
+
+        ws.cell(r, 1).value = new_id
+        map_ws.append([
+            datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            r,
+            str(old_id),
+            new_id
+        ])
+        changed += 1
+
+    wb.save(EXCEL_PATH)
+    wb.close()
+    return changed
+
+# ============================================================
+# 6) INTERFACE
+# ============================================================
+w_atendimento = widgets.Text(
+    description="Atendimento*",
+    placeholder="Ex.: Orientação / Encaminhamento / Registro",
+    layout=widgets.Layout(width="720px")
+)
+
+w_telefone = widgets.Text(
+    description="Telefone",
+    placeholder="(xx) xxxxx-xxxx",
+    layout=widgets.Layout(width="320px")
+)
+
+w_vinculo = widgets.Dropdown(
+    description="Vínculo",
+    options=["Responsável", "Aluno", "Escola", "Outro"],
+    value="Responsável"
+)
+
+w_aluno = widgets.Text(
+    description="Aluno*",
+    placeholder="Nome completo",
+    layout=widgets.Layout(width="720px")
+)
+
+w_idade = widgets.IntText(
+    description="Idade",
+    value=0,
+    layout=widgets.Layout(width="180px")
+)
+
+w_ae = widgets.Text(
+    description="AE",
+    placeholder="Ex.: Sala de Recursos / Professor(a) AE",
+    layout=widgets.Layout(width="420px")
+)
+
+w_turno = widgets.Dropdown(
+    description="Turno",
+    options=["Manhã", "Tarde", "Noite", "Integral", "N/I"],
+    value="N/I"
+)
+
+w_psp = widgets.Text(
+    description="PSP Resp.",
+    placeholder="Responsável pelo atendimento",
+    layout=widgets.Layout(width="520px")
+)
+
+w_solic = widgets.Textarea(
+    description="Solicitação*",
+    placeholder="Descreva a demanda, contexto, ações e encaminhamentos...",
+    layout=widgets.Layout(width="920px", height="130px")
+)
+
+w_tipo = widgets.Dropdown(
+    description="Tipo",
+    options=["Orientação", "Encaminhamento", "Registro", "Outros"],
+    value="Registro"
+)
+
+w_status = widgets.Dropdown(
+    description="Status",
+    options=["Aberto", "Em andamento", "Concluído"],
+    value="Aberto"
+)
+
+btn_save = widgets.Button(description="Salvar atendimento", button_style="success", icon="save")
+btn_clear = widgets.Button(description="Limpar", icon="eraser")
+btn_last = widgets.Button(description="Ver últimos 20", button_style="info", icon="list")
+
+w_busca = widgets.Text(
+    description="Buscar",
+    placeholder="Aluno / telefone / status / tipo / ID",
+    layout=widgets.Layout(width="720px")
+)
+btn_busca = widgets.Button(description="Pesquisar", button_style="warning", icon="search")
+
+w_upd_id = widgets.Text(
+    description="ID",
+    placeholder=f"Cole o ID (ex.: {PREFIX}-{datetime.now().year}-000001)",
+    layout=widgets.Layout(width="420px")
+)
+w_upd_status = widgets.Dropdown(
+    description="Novo status",
+    options=["Aberto", "Em andamento", "Concluído"],
+    value="Em andamento"
+)
+btn_upd = widgets.Button(description="Atualizar status", button_style="primary", icon="refresh-cw")
+
+btn_check_mig = widgets.Button(description="Verificar IDs antigos", button_style="warning", icon="search")
+btn_migrate = widgets.Button(description="Migrar IDs antigos", button_style="danger", icon="exchange")
+
+out = widgets.Output()
+
+# ============================================================
+# 7) EVENTOS
+# ============================================================
+def clear_form():
+    w_atendimento.value = ""
+    w_telefone.value = ""
+    w_vinculo.value = "Responsável"
+    w_aluno.value = ""
+    w_idade.value = 0
+    w_ae.value = ""
+    w_turno.value = "N/I"
+    w_psp.value = ""
+    w_solic.value = ""
+    w_tipo.value = "Registro"
+    w_status.value = "Aberto"
+
+def on_save(_):
+    with out:
+        clear_output()
+
+        if not w_atendimento.value.strip() or not w_aluno.value.strip() or not w_solic.value.strip():
+            print("⚠️ Preencha os campos obrigatórios: Atendimento, Aluno e Solicitação.")
+            return
+
+        payload = {
+            "Atendimento": w_atendimento.value,
+            "Telefone": w_telefone.value,
+            "Vínculo": w_vinculo.value,
+            "Aluno": w_aluno.value,
+            "Idade": int(w_idade.value) if w_idade.value else "",
+            "AE": w_ae.value,
+            "Turno": w_turno.value,
+            "PSP Responsável": w_psp.value,
+            "Solicitação": w_solic.value,
+            "Tipo": w_tipo.value,
+            "Status": w_status.value
+        }
+
+        try:
+            rid, now = append_attendance(payload)
+            print(f"✅ Salvo com sucesso! ID={rid} | Data/Hora={now}")
+            print("📌 Arquivo:", EXCEL_PATH)
+            clear_form()
+        except Exception as e:
+            print("❌ Erro ao salvar:", e)
+
+def on_clear(_):
+    with out:
+        clear_output()
+        clear_form()
+        print("🧹 Formulário limpo.")
+        print("📌 Arquivo:", EXCEL_PATH)
+
+def on_last(_):
+    with out:
+        clear_output()
+        try:
+            df = read_df()
+            if df.empty:
+                print("ℹ️ Não há registros ainda.")
+            else:
+                display(df.tail(20))
+            print("📌 Arquivo:", EXCEL_PATH)
+        except Exception as e:
+            print("❌ Erro ao ler planilha:", e)
+
+def on_search(_):
+    with out:
+        clear_output()
+        q = w_busca.value.strip().lower()
+        if not q:
+            print("Digite algo para buscar.")
+            return
+
+        try:
+            df = read_df().fillna("")
+            if df.empty:
+                print("ℹ️ Não há registros ainda.")
+                return
+
+            mask = (
+                df["ID"].astype(str).str.lower().str.contains(q) |
+                df["Aluno"].astype(str).str.lower().str.contains(q) |
+                df["Telefone"].astype(str).str.lower().str.contains(q) |
+                df["Status"].astype(str).str.lower().str.contains(q) |
+                df["Tipo"].astype(str).str.lower().str.contains(q) |
+                df["Atendimento"].astype(str).str.lower().str.contains(q) |
+                df["Solicitação"].astype(str).str.lower().str.contains(q)
+            )
+
+            res = df[mask].sort_values(by="Data/Hora", ascending=False).head(50)
+
+            if res.empty:
+                print("Nada encontrado.")
+            else:
+                display(res)
+
+            print("📌 Arquivo:", EXCEL_PATH)
+
+        except Exception as e:
+            print("❌ Erro na busca:", e)
+
+def on_update(_):
+    with out:
+        clear_output()
+        pid = w_upd_id.value.strip()
+
+        if not pid:
+            print("⚠️ Informe um ID válido.")
+            return
+
+        try:
+            update_status_by_id(pid, w_upd_status.value)
+            print(f"✅ Status do ID {pid} atualizado para: {w_upd_status.value}")
+            print("📌 Arquivo:", EXCEL_PATH)
+        except Exception as e:
+            print("❌ Erro ao atualizar:", e)
+
+def on_check_migration(_):
+    with out:
+        clear_output()
+        try:
+            count, examples = count_non_institutional_ids()
+            print(f"🔎 Registros com ID antigo/fantasia: {count}")
+            if examples:
+                print("Exemplos:")
+                for ex in examples:
+                    print("-", ex)
+            else:
+                print("Nenhum ID antigo encontrado.")
+            print("📌 Arquivo:", EXCEL_PATH)
+        except Exception as e:
+            print("❌ Erro ao verificar migração:", e)
+
+def on_migrate(_):
+    with out:
+        clear_output()
+        try:
+            count_before, examples = count_non_institutional_ids()
+            if count_before == 0:
+                print("✅ Não há IDs antigos para migrar.")
+                print("📌 Arquivo:", EXCEL_PATH)
+                return
+
+            print(f"🔁 Iniciando migração de {count_before} registro(s)...")
+            changed = migrate_old_ids()
+            print(f"✅ Migração concluída. Registros alterados: {changed}")
+            print(f"📋 Aba de auditoria criada/atualizada: {MAP_SHEET}")
+            print("📌 Arquivo:", EXCEL_PATH)
+
+        except Exception as e:
+            print("❌ Erro na migração:", e)
+
+btn_save.on_click(on_save)
+btn_clear.on_click(on_clear)
+btn_last.on_click(on_last)
+btn_busca.on_click(on_search)
+btn_upd.on_click(on_update)
+btn_check_mig.on_click(on_check_migration)
+btn_migrate.on_click(on_migrate)
+
+# ============================================================
+# 8) LAYOUT
+# ============================================================
+header = widgets.HTML(
+    "<h3>Protocolo de Atendimento — Educação Especial</h3>"
+    f"<div style='font-size:12px; color:#555'>Arquivo: {EXCEL_PATH}</div>"
+    f"<div style='font-size:12px; color:#555'>Padrão de ID: {PREFIX}-AAAA-{'0'*SEQ_WIDTH}</div>"
+)
+
+ui = widgets.VBox([
+    header,
+
+    widgets.HBox([w_atendimento, w_telefone]),
+    widgets.HBox([w_vinculo, w_aluno]),
+    widgets.HBox([w_idade, w_ae, w_turno]),
+    w_psp,
+    w_solic,
+    widgets.HBox([w_tipo, w_status]),
+    widgets.HBox([btn_save, btn_clear, btn_last]),
+
+    widgets.HTML("<hr>"),
+    widgets.HBox([w_busca, btn_busca]),
+
+    widgets.HTML("<hr>"),
+    widgets.HTML("<b>Atualizar status por ID</b>"),
+    widgets.HBox([w_upd_id, w_upd_status, btn_upd]),
+
+    widgets.HTML("<hr>"),
+    widgets.HTML("<b>Migração de IDs antigos</b>"),
+    widgets.HBox([btn_check_mig, btn_migrate]),
+
+    out
+])
+
+display(ui)
+
+with out:
+    print("Pronto.")
+    print("1) Novos registros já saem com ID institucional.")
+    print("2) Use 'Verificar IDs antigos' para saber quantos ainda estão fora do padrão.")
+    print("3) Use 'Migrar IDs antigos' para converter os IDs fantasia.")
+    print("4) A aba 'ID_MAP' guarda o histórico da migração.")
+    print("📌 Arquivo:", EXCEL_PATH)
