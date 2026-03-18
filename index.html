@@ -945,14 +945,33 @@
         const res = await fetch(`${JSONBIN_BASE}/${JSONBIN_BIN_ID}/latest`, {
           headers: { "X-Master-Key": JSONBIN_API_KEY }
         });
+
+        // 401 = chave errada | 404 = bin não existe
+        if (res.status === 401) throw new Error("auth");
+        if (res.status === 404) throw new Error("notfound");
         if (!res.ok) throw new Error("HTTP " + res.status);
+
         const json = await res.json();
-        // O JSONBin armazena { record: [...] }
-        atendimentosAll = Array.isArray(json.record) ? json.record : [];
+        const record = json.record;
+
+        // Bin criado mas ainda vazio ({}) — trata como lista vazia
+        atendimentosAll = Array.isArray(record) ? record : [];
         listarAtendimentos();
-        toast("Dados carregados do servidor ✓", "ok");
+
+        // Só mostra toast se tiver dados — sem spam na primeira visita
+        if (atendimentosAll.length > 0){
+          toast(`${atendimentosAll.length} atendimentos carregados ✓`, "ok");
+        }
       } catch(err){
-        toast("Erro ao carregar dados do servidor. Verifique API Key e Bin ID.", "err", 5000);
+        atendimentosAll = [];
+        listarAtendimentos();
+        if (err.message === "auth"){
+          toast("API Key inválida. Verifique a configuração.", "err", 6000);
+        } else if (err.message === "notfound"){
+          toast("Bin ID não encontrado. Verifique a configuração.", "err", 6000);
+        } else {
+          toast("Não foi possível conectar ao servidor. Trabalhando offline.", "err", 5000);
+        }
         console.error(err);
       } finally {
         setBtnSalvarLoading(false);
@@ -971,10 +990,15 @@
           },
           body: JSON.stringify(atendimentosAll)
         });
+        if (res.status === 401) throw new Error("auth");
         if (!res.ok) throw new Error("HTTP " + res.status);
         toast("Dados salvos no site com sucesso ✓", "ok");
       } catch(err){
-        toast("Falha ao salvar no servidor. Verifique sua conexão.", "err", 5000);
+        if (err.message === "auth"){
+          toast("API Key inválida — dados não foram salvos.", "err", 6000);
+        } else {
+          toast("Falha ao salvar. Verifique sua conexão e tente novamente.", "err", 5000);
+        }
         console.error(err);
       } finally {
         setBtnSalvarLoading(false);
