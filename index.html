@@ -982,13 +982,14 @@
         const record = json.record;
 
         // Suporta formato antigo { atendimentos: [] } e novo []
+        let lista = [];
         if (Array.isArray(record)){
-          atendimentosAll = record;
+          lista = record;
         } else if (record && Array.isArray(record.atendimentos)){
-          atendimentosAll = record.atendimentos;
-        } else {
-          atendimentosAll = [];
+          lista = record.atendimentos;
         }
+        // Filtra sentinel de array vazio
+        atendimentosAll = lista.filter(r => !r.__vazio);
         listarAtendimentos();
 
         // Só mostra toast se tiver dados — sem spam na primeira visita
@@ -1014,6 +1015,8 @@
     /* ---------- JSONBin: salvar ---------- */
     async function salvarNoServidor(){
       setBtnSalvarLoading(true);
+      // JSONBin rejeita array vazio — usa sentinel invisível que é filtrado ao carregar
+      const payload = atendimentosAll.length > 0 ? atendimentosAll : [{"__vazio": true}];
       try {
         const res = await fetch(`${JSONBIN_BASE}/${JSONBIN_BIN_ID}`, {
           method:  "PUT",
@@ -1021,11 +1024,12 @@
             "Content-Type": "application/json",
             "X-Master-Key": JSONBIN_API_KEY
           },
-          body: JSON.stringify(atendimentosAll)
+          body: JSON.stringify(payload)
         });
         if (res.status === 401) throw new Error("auth");
         if (!res.ok) throw new Error("HTTP " + res.status);
-        toast("Dados salvos no site com sucesso ✓", "ok");
+        if (atendimentosAll.length > 0) toast("Dados salvos no site com sucesso ✓", "ok");
+        return true;
       } catch(err){
         if (err.message === "auth"){
           toast("API Key inválida — dados não foram salvos.", "err", 6000);
@@ -1033,6 +1037,7 @@
           toast("Falha ao salvar. Verifique sua conexão e tente novamente.", "err", 5000);
         }
         console.error(err);
+        return false;
       } finally {
         setBtnSalvarLoading(false);
       }
@@ -1276,11 +1281,13 @@
     });
 
     /* ---------- Limpar tudo ---------- */
-    document.getElementById("btn-limpar").addEventListener("click", () => {
-      if (!confirm("Deseja apagar todos os atendimentos da memória?\n\n⚠️ Isso não remove os dados do servidor — clique em 'Salvar no site' após limpar para apagar lá também.")) return;
+    document.getElementById("btn-limpar").addEventListener("click", async () => {
+      if (!confirm("Deseja apagar todos os atendimentos do servidor?\n\nEsta ação não pode ser desfeita.")) return;
       atendimentosAll = [];
       listarAtendimentos();
-      toast("Lista limpa. Salve no site para apagar do servidor também.", "ok", 5000);
+      // JSONBin não aceita array completamente vazio — usa placeholder invisível
+      const salvo = await salvarNoServidor();
+      if (salvo) toast("Dados apagados do servidor com sucesso ✓", "ok");
     });
 
     /* ---------- Filtro ---------- */
