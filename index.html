@@ -812,9 +812,14 @@
        ============================================================ -->
   <script>
     /* ---------- utilidades ---------- */
-    function gerarId(){
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-      return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+    function proximoId(){
+      // Encontra o maior número AT-XXXX já existente e incrementa
+      let max = 0;
+      for (const a of atendimentosAll){
+        const match = (a.id || "").match(/^AT-(\d+)$/i);
+        if (match) max = Math.max(max, parseInt(match[1], 10));
+      }
+      return "AT-" + String(max + 1).padStart(4, "0");
     }
 
     let toastTimer = null;
@@ -982,7 +987,7 @@
       e.preventDefault();
 
       const novo = {
-        id:          gerarId(),
+        id:          proximoId(),
         dataHora:    new Date().toLocaleString(),
         atendimento: document.getElementById("atendimento").value.trim(),
         telefone:    document.getElementById("telefone").value.trim(),
@@ -1045,7 +1050,7 @@
           if (!Array.isArray(rows)) throw new Error("Formato inválido.");
 
           const normalizados = rows.map(r => ({
-            id:          (r["ID"]       || r["id"]       || gerarId()).toString(),
+            id:          (r["ID"]       || r["id"]       || proximoId()).toString(),
             dataHora:    (r["Data/Hora"]|| r["dataHora"] || new Date().toLocaleString()).toString(),
             atendimento: (r["Atendimento"] || r["atendimento"] || "").toString(),
             telefone:    (r["Telefone"]    || r["telefone"]    || "").toString(),
@@ -1132,4 +1137,3 @@
 
 </body>
 </html>
-
