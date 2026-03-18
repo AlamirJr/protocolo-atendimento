@@ -847,6 +847,7 @@
       </div>
       <div class="modal-body" id="modal-body"></div>
       <div class="modal-footer">
+        <button class="btn btn-danger" id="modal-remover" style="margin-right:auto;">Remover</button>
         <button class="btn btn-primary" id="modal-alterar-status">Alterar status</button>
         <button class="btn" id="modal-fechar-btn">Fechar</button>
       </div>
@@ -1049,23 +1050,9 @@
         const btnVer = document.createElement("button");
         btnVer.type      = "button";
         btnVer.className = "acoes-btn";
-        btnVer.textContent = "Ver";
+        btnVer.textContent = "Ver detalhes";
         btnVer.addEventListener("click", () => abrirModal(a.id));
         wrap.appendChild(btnVer);
-
-        const btnStatus = document.createElement("button");
-        btnStatus.type      = "button";
-        btnStatus.className = "acoes-btn";
-        btnStatus.textContent = "Alterar status";
-        btnStatus.addEventListener("click", () => editarStatus(a.id));
-        wrap.appendChild(btnStatus);
-
-        const btnRemover = document.createElement("button");
-        btnRemover.type      = "button";
-        btnRemover.className = "acoes-btn acoes-btn-remover";
-        btnRemover.textContent = "Remover";
-        btnRemover.addEventListener("click", () => removerAtendimento(a.id));
-        wrap.appendChild(btnRemover);
 
         tdAcoes.appendChild(wrap);
         row.appendChild(tdAcoes);
@@ -1292,6 +1279,9 @@
     });
     document.getElementById("modal-alterar-status").addEventListener("click", () => {
       if (modalIdAtual) { editarStatus(modalIdAtual); fecharModal(); }
+    });
+    document.getElementById("modal-remover").addEventListener("click", () => {
+      if (modalIdAtual) { removerAtendimento(modalIdAtual); fecharModal(); }
     });
 
     /* ---------- inicialização ---------- */
