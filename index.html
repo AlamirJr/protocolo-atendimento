@@ -404,7 +404,7 @@
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 980px;
+      min-width: 640px;
       background: #fff;
     }
     thead th{
@@ -517,6 +517,93 @@
       font-size: 12px;
       color: var(--muted);
       font-weight: 700;
+    }
+
+    /* =========================
+       MODAL DE DETALHES
+       ========================= */
+    #modal-overlay{
+      position: fixed;
+      inset: 0;
+      z-index: 8000;
+      background: rgba(17,24,39,.45);
+      backdrop-filter: blur(4px);
+      display: none;
+      place-items: center;
+      padding: 18px;
+    }
+    #modal-overlay.open{ display: grid; }
+
+    .modal-card{
+      width: min(560px, 100%);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(17,24,39,.18);
+      overflow: hidden;
+      animation: fadeUp .18s ease;
+    }
+    @keyframes fadeUp{
+      from{ opacity:0; transform: translateY(10px); }
+      to  { opacity:1; transform: translateY(0); }
+    }
+
+    .modal-header{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(17,24,39,.02), transparent);
+    }
+    .modal-header h3{ margin:0; font-size: 14px; }
+    .modal-header .modal-id{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .modal-close{
+      width: 30px; height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      transition: background .15s;
+    }
+    .modal-close:hover{ background: #f3f4f6; color: var(--text); }
+
+    .modal-body{
+      padding: 16px 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 20px;
+    }
+
+    .modal-field label{
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 3px;
+    }
+    .modal-field span{
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .modal-field.full{ grid-column: span 2; }
+
+    .modal-footer{
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
     }
   </style>
 </head>
@@ -712,7 +799,7 @@
       <div class="card-header">
         <div>
           <h2>Atendimentos registrados</h2>
-          <p class="hint">Rolagem horizontal disponível (muitos campos).</p>
+          <p class="hint">Colunas essenciais — use <b>Ver</b> para detalhes completos.</p>
         </div>
       </div>
 
@@ -729,16 +816,11 @@
           <table id="tabela-atendimentos">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Data/Hora</th>
-                <th>Atendimento</th>
-                <th>Telefone</th>
-                <th>Vínculo</th>
                 <th>Aluno</th>
-                <th>Idade</th>
                 <th>AE</th>
-                <th>Turno</th>
                 <th>PSP Responsável</th>
-                <th>Solicitação</th>
                 <th>Tipo</th>
                 <th>Status</th>
                 <th>Ações</th>
@@ -750,6 +832,25 @@
       </div>
     </section>
 
+  </div>
+
+
+  <!-- MODAL DE DETALHES -->
+  <div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-title">Detalhes do atendimento</h3>
+          <span class="modal-id" id="modal-id-label"></span>
+        </div>
+        <button class="modal-close" id="modal-fechar" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="modal-alterar-status">Alterar status</button>
+        <button class="btn" id="modal-fechar-btn">Fechar</button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast -->
@@ -898,9 +999,9 @@
 
     /* ---------- listar atendimentos (tabela) ---------- */
     function listarAtendimentos(){
-      const tbody     = document.querySelector("#tabela-atendimentos tbody");
-      const filtroEl  = document.getElementById("filtro-tabela");
-      const contadorEl= document.getElementById("contador-tabela");
+      const tbody      = document.querySelector("#tabela-atendimentos tbody");
+      const filtroEl   = document.getElementById("filtro-tabela");
+      const contadorEl = document.getElementById("contador-tabela");
 
       tbody.innerHTML = "";
 
@@ -913,7 +1014,7 @@
         ? sorted
         : sorted.filter(a => {
             const blob = [
-              a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno,
+              a.id, a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno,
               a.idade, a.ae, a.turno, a.psp, a.solicitacao, a.tipo, a.status
             ].join(" ").toLowerCase();
             return blob.includes(filtro);
@@ -924,8 +1025,8 @@
       lista.forEach(a => {
         const row = document.createElement("tr");
 
-        [a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno,
-         a.idade, a.ae, a.turno, a.psp, a.solicitacao, a.tipo].forEach(val => {
+        // Colunas essenciais
+        [a.id, a.dataHora, a.aluno, a.ae, a.psp, a.tipo].forEach(val => {
           const td = document.createElement("td");
           td.textContent = val ?? "";
           row.appendChild(td);
@@ -935,7 +1036,7 @@
         const tdStatus = document.createElement("td");
         const badge    = document.createElement("span");
         const atendido = (a.status === "Atendido");
-        badge.className = "badge " + (atendido ? "badge-atendido" : "badge-pendente");
+        badge.className   = "badge " + (atendido ? "badge-atendido" : "badge-pendente");
         badge.textContent = atendido ? "Atendido" : "Pendente";
         tdStatus.appendChild(badge);
         row.appendChild(tdStatus);
@@ -944,6 +1045,13 @@
         const tdAcoes = document.createElement("td");
         const wrap    = document.createElement("div");
         wrap.className = "acoes-wrap";
+
+        const btnVer = document.createElement("button");
+        btnVer.type      = "button";
+        btnVer.className = "acoes-btn";
+        btnVer.textContent = "Ver";
+        btnVer.addEventListener("click", () => abrirModal(a.id));
+        wrap.appendChild(btnVer);
 
         const btnStatus = document.createElement("button");
         btnStatus.type      = "button";
@@ -1129,6 +1237,61 @@
       el.value = "";
       el.focus();
       listarAtendimentos();
+    });
+
+
+    /* ---------- Modal de detalhes ---------- */
+    let modalIdAtual = null;
+
+    function abrirModal(id){
+      const a = atendimentosAll.find(x => x.id === id);
+      if (!a) return;
+      modalIdAtual = id;
+
+      document.getElementById("modal-id-label").textContent = a.id;
+
+      const campos = [
+        ["Data/Hora",    a.dataHora,    false],
+        ["Atendimento",  a.atendimento, false],
+        ["Telefone",     a.telefone,    false],
+        ["Vínculo",      a.vinculo,     false],
+        ["Aluno",        a.aluno,       false],
+        ["Idade",        a.idade,       false],
+        ["AE",           a.ae,          false],
+        ["Turno",        a.turno,       false],
+        ["PSP Resp.",    a.psp,         false],
+        ["Tipo",         a.tipo,        false],
+        ["Status",       a.status,      false],
+        ["Solicitação",  a.solicitacao, true ],
+      ];
+
+      const body = document.getElementById("modal-body");
+      body.innerHTML = "";
+      campos.forEach(([label, val, full]) => {
+        const div = document.createElement("div");
+        div.className = "modal-field" + (full ? " full" : "");
+        div.innerHTML = `<label>${label}</label><span>${val ?? "—"}</span>`;
+        body.appendChild(div);
+      });
+
+      document.getElementById("modal-overlay").classList.add("open");
+    }
+
+    function fecharModal(){
+      document.getElementById("modal-overlay").classList.remove("open");
+      modalIdAtual = null;
+    }
+
+    document.getElementById("modal-fechar").addEventListener("click", fecharModal);
+    document.getElementById("modal-fechar-btn").addEventListener("click", fecharModal);
+    document.getElementById("modal-overlay").addEventListener("click", e => {
+      if (e.target === document.getElementById("modal-overlay")) fecharModal();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") fecharModal();
+    });
+    document.getElementById("modal-alterar-status").addEventListener("click", () => {
+      if (modalIdAtual) { editarStatus(modalIdAtual); fecharModal(); }
     });
 
     /* ---------- inicialização ---------- */
