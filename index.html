@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Protocolo de Atendimento - SEDUCT</title>
+  <title>Painel com Controle de Acesso</title>
 
   <style>
     :root{
@@ -23,1567 +23,742 @@
       --danger-2: #dc2626;
 
       --success: #16a34a;
-      --success-bg: #dcfce7;
+      --success-2: #15803d;
 
-      --warn: #f59e0b;
-      --warn-bg: #fffbeb;
+      --warn: #d97706;
+      --warn-bg: #fff7ed;
 
-      --pending-bg: #fee2e2;
-      --pending: #991b1b;
-
-      --attended-bg: #dcfce7;
-      --attended: #166534;
-
-      --focus: 0 0 0 4px rgba(37, 99, 235, .18);
+      --gray-btn: #374151;
+      --gray-btn-2: #1f2937;
     }
 
-    * { box-sizing: border-box; }
+    *{
+      box-sizing: border-box;
+    }
 
     body{
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
-      background: radial-gradient(900px 500px at 20% -10%, rgba(37,99,235,.12), transparent 55%),
-                  radial-gradient(900px 500px at 100% 0%, rgba(16,185,129,.10), transparent 50%),
-                  var(--bg);
-      color: var(--text);
-    }
-
-    #lock{
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: grid;
-      place-items: center;
-      padding: 18px;
-      background: radial-gradient(900px 500px at 20% -10%, rgba(37,99,235,.18), transparent 55%),
-                  radial-gradient(900px 500px at 100% 0%, rgba(16,185,129,.14), transparent 50%),
-                  #0b1220;
-    }
-
-    .lock-card{
-      width: min(520px, 100%);
-      background: rgba(255,255,255,.92);
-      border: 1px solid rgba(255,255,255,.55);
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.25);
-      padding: 18px;
-      backdrop-filter: blur(10px);
-    }
-
-    .lock-title{
-      margin: 0 0 6px;
-      font-size: 18px;
-      color: #111827;
-      letter-spacing: .2px;
-    }
-    .lock-subtitle{
-      margin: 0 0 14px;
-      color: #374151;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .lock-row{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      flex-wrap: wrap;
-    }
-
-    .lock-input{
-      flex: 1 1 220px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: #fff;
-      font-size: 14px;
-      outline: none;
-    }
-    .lock-input:focus{
-      border-color: rgba(37,99,235,.55);
-      box-shadow: var(--focus);
-    }
-
-    .lock-btn{
-      appearance:none;
-      border: 1px solid transparent;
-      background: linear-gradient(180deg, var(--primary), var(--primary-2));
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 800;
-      font-size: 13px;
-      box-shadow: 0 10px 22px rgba(37,99,235,.25);
-      white-space: nowrap;
-    }
-    .lock-btn:hover{ filter: brightness(1.05); }
-    .lock-hint{
-      margin: 10px 0 0;
-      color: rgba(17,24,39,.70);
-      font-size: 12px;
-    }
-
-    #app{ display:none; }
-
-    .app{
-      max-width: 1200px;
-      margin: 22px auto;
-      padding: 0 16px 28px;
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 16px;
-      padding: 14px 16px;
-      background: rgba(255,255,255,.75);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 10px;
-      z-index: 5;
-    }
-
-    .brand{
-      display:flex;
-      gap: 12px;
-      align-items:center;
-      min-width: 240px;
-    }
-    .logo{
-      width: 38px; height: 38px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--primary), #22c55e);
-      box-shadow: 0 10px 20px rgba(37,99,235,.22);
-      position: relative;
-      flex: 0 0 auto;
-    }
-    .logo::after{
-      content:"";
-      position:absolute;
-      inset: 9px;
-      border-radius: 10px;
-      background: rgba(255,255,255,.65);
-    }
-    .brand h1{
       margin:0;
-      font-size: 16px;
-      line-height: 1.2;
-      letter-spacing: .2px;
-    }
-    .brand p{
-      margin:2px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .top-actions{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-      align-items:center;
-    }
-
-    .btn{
-      appearance:none;
-      border:1px solid var(--border);
-      background: var(--card);
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
       color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      cursor:pointer;
-      font-weight: 600;
-      font-size: 13px;
-      display:inline-flex;
-      align-items:center;
-      gap: 10px;
-      transition: transform .04s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
-      box-shadow: 0 8px 18px rgba(17,24,39,.06);
-      user-select:none;
-    }
-    .btn:hover{
-      transform: translateY(-1px);
-      box-shadow: 0 12px 24px rgba(17,24,39,.10);
-      border-color: #d1d5db;
-    }
-    .btn:active{ transform: translateY(0); box-shadow: 0 8px 18px rgba(17,24,39,.06); }
-    .btn:focus{ outline:none; box-shadow: var(--focus), 0 12px 24px rgba(17,24,39,.12); }
-
-    .btn-primary{
-      border-color: rgba(37,99,235,.30);
-      background: linear-gradient(180deg, rgba(37,99,235,.12), rgba(37,99,235,.06));
-      color: #0b2a7a;
-    }
-    .btn-primary:hover{
-      border-color: rgba(37,99,235,.45);
-      background: linear-gradient(180deg, rgba(37,99,235,.16), rgba(37,99,235,.08));
     }
 
-    .btn-solid{
-      border-color: transparent;
-      background: linear-gradient(180deg, var(--primary), var(--primary-2));
-      color: white;
-    }
-    .btn-solid:hover{
-      background: linear-gradient(180deg, #3b82f6, var(--primary-2));
-    }
-
-    .btn-danger{
-      border-color: transparent;
-      background: linear-gradient(180deg, var(--danger), var(--danger-2));
-      color: #fff;
-    }
-    .btn-danger:hover{
-      background: linear-gradient(180deg, #f87171, var(--danger-2));
-    }
-
-    .icon{
-      width: 18px; height: 18px;
-      display:inline-block;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 16px;
-      margin-top: 16px;
-    }
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-      .brand{ min-width: unset; }
-      .topbar{ align-items:flex-start; }
+    .container{
+      width:min(1200px, 94%);
+      margin: 24px auto;
     }
 
     .card{
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .card-header{
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-      gap: 10px;
-      background: linear-gradient(180deg, rgba(17,24,39,.02), transparent);
-    }
-    .card-header h2{
-      margin:0;
-      font-size: 14px;
-      letter-spacing:.2px;
-    }
-    .card-header .hint{
-      margin:0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .card-body{
-      padding: 16px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
     }
 
-    form{ margin:0; }
+    .login-wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .login-card{
+      width:min(420px, 100%);
+    }
+
+    h1,h2,h3{
+      margin:0 0 12px 0;
+    }
+
+    .subtitle{
+      color:var(--muted);
+      margin-bottom:18px;
+      line-height:1.5;
+    }
 
     .form-grid{
       display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:14px;
     }
 
-    .field{ display:flex; flex-direction: column; gap: 6px; }
-    .field label{
-      font-size: 12px;
-      color: #374151;
-      font-weight: 700;
-    }
-
-    input, textarea, select{
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: var(--text);
-      font-size: 14px;
-      transition: box-shadow .15s ease, border-color .15s ease;
-    }
-    textarea{ resize: vertical; min-height: 92px; }
-    input:focus, textarea:focus, select:focus{
-      outline:none;
-      border-color: rgba(37,99,235,.55);
-      box-shadow: var(--focus);
-    }
-    .muted{ color: var(--muted); font-size: 12px; margin: 0; }
-
-    .col-12{ grid-column: span 12; }
-    .col-8{ grid-column: span 8; }
-    .col-6{ grid-column: span 6; }
-    .col-4{ grid-column: span 4; }
-    .col-3{ grid-column: span 3; }
-
-    @media (max-width: 720px){
-      .col-8,.col-6,.col-4,.col-3{ grid-column: span 12; }
-    }
-
-    .form-actions{
-      margin-top: 14px;
+    .form-group{
       display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .form-actions .btn{ flex: 1 1 180px; justify-content:center; }
-
-    .aviso{
-      background: var(--warn-bg);
-      border: 1px solid rgba(245, 158, 11, .35);
-      padding: 12px 12px;
-      border-radius: 12px;
-      margin: 12px 0 0;
-      font-size: 13px;
-      line-height: 1.35;
-      color: #78350f;
+      flex-direction:column;
+      gap:6px;
     }
 
-    .table-wrap{
-      overflow:auto;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-    }
-    table{
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      min-width: 1100px;
-      background: #fff;
-    }
-    thead th{
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: #f9fafb;
-      color: #374151;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      border-bottom: 1px solid var(--border);
-      padding: 12px 10px;
-      text-align: left;
-      white-space: nowrap;
-    }
-    tbody td{
-      border-bottom: 1px solid var(--border);
-      padding: 10px 10px;
-      vertical-align: top;
-      font-size: 13px;
-      color: #111827;
-      word-break: break-word;
-    }
-    tbody tr:hover td{
-      background: rgba(37,99,235,.04);
+    .form-group.full{
+      grid-column:1 / -1;
     }
 
-    .td-id{
-      font-size: 11px;
-      color: var(--muted);
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      white-space: nowrap;
-      max-width: 110px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    label{
+      font-size:14px;
+      font-weight:600;
+    }
+
+    input, select, textarea{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+
+    input:focus, select:focus, textarea:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(37,99,235,.12);
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+    }
+
+    .toolbar-left,
+    .toolbar-right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
     }
 
     .badge{
       display:inline-flex;
       align-items:center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: 800;
-      font-size: 12px;
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-    .badge::before{
-      content:"";
-      width: 8px; height: 8px;
-      border-radius: 999px;
-      background: currentColor;
-      opacity: .75;
+      gap:8px;
+      background:#eff6ff;
+      color:#1d4ed8;
+      border:1px solid #bfdbfe;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
     }
 
-    .badge-pendente{
-      background: var(--pending-bg);
-      color: var(--pending);
-      border-color: rgba(153, 27, 27, .18);
-    }
-    .badge-andamento{
-      background: var(--warn-bg);
-      color: #92400e;
-      border-color: rgba(245, 158, 11, .35);
-    }
-    .badge-concluido{
-      background: var(--attended-bg);
-      color: var(--attended);
-      border-color: rgba(22, 101, 52, .20);
-    }
-    .badge-cancelado{
-      background: #f3f4f6;
-      color: #374151;
-      border-color: rgba(107, 114, 128, .25);
+    .badge.user{
+      background:#ecfdf5;
+      color:#166534;
+      border-color:#bbf7d0;
     }
 
-    .acoes-btn{
-      width: auto;
-      padding: 8px 10px;
-      font-size: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #fff;
+    .muted{
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius:10px;
+      padding:11px 14px;
+      font-size:14px;
+      font-weight:700;
       cursor:pointer;
-      font-weight: 700;
-      transition: box-shadow .15s ease, transform .05s ease, background .15s ease;
-      white-space: nowrap;
-    }
-    .acoes-btn:hover{ box-shadow: 0 10px 18px rgba(17,24,39,.08); transform: translateY(-1px); }
-    .acoes-btn:active{ transform: translateY(0); }
-    .acoes-btn:focus{ outline:none; box-shadow: var(--focus), 0 10px 18px rgba(17,24,39,.10); }
-
-    /* Botão remover com estilo vermelho sutil */
-    .acoes-btn-remover{
-      border-color: rgba(239,68,68,.30);
-      color: #991b1b;
-      background: rgba(254,226,226,.45);
-    }
-    .acoes-btn-remover:hover{
-      background: rgba(254,226,226,.85);
-      border-color: rgba(239,68,68,.55);
+      transition:.18s ease;
     }
 
-    /* Container flex para os botões de ação */
-    .acoes-wrap{
-      display: flex;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 6px;
-    }
-    .acoes-wrap .acoes-btn{
-      margin-left: 0 !important;
+    .btn:hover{
+      transform:translateY(-1px);
     }
 
-    .subline{
+    .btn-primary{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    .btn-primary:hover{
+      background:var(--primary-2);
+    }
+
+    .btn-danger{
+      background:var(--danger);
+      color:#fff;
+    }
+
+    .btn-danger:hover{
+      background:var(--danger-2);
+    }
+
+    .btn-success{
+      background:var(--success);
+      color:#fff;
+    }
+
+    .btn-success:hover{
+      background:var(--success-2);
+    }
+
+    .btn-gray{
+      background:var(--gray-btn);
+      color:#fff;
+    }
+
+    .btn-gray:hover{
+      background:var(--gray-btn-2);
+    }
+
+    .btn-outline{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--border);
+    }
+
+    .btn-outline:hover{
+      background:#f9fafb;
+    }
+
+    .error{
+      color:#b91c1c;
+      background:#fef2f2;
+      border:1px solid #fecaca;
+      border-radius:10px;
+      padding:10px 12px;
+      margin-top:12px;
+      font-size:14px;
+      display:none;
+    }
+
+    .info-box{
+      background:var(--warn-bg);
+      color:#9a3412;
+      border:1px solid #fed7aa;
+      border-radius:12px;
+      padding:12px 14px;
+      margin:14px 0 0 0;
+      font-size:14px;
+    }
+
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:900px;
+    }
+
+    thead th{
+      background:#f9fafb;
+      text-align:left;
+      font-size:13px;
+      padding:12px;
+      border-bottom:1px solid var(--border);
+      white-space:nowrap;
+    }
+
+    tbody td{
+      font-size:14px;
+      padding:12px;
+      border-bottom:1px solid var(--border);
+      vertical-align:top;
+    }
+
+    tbody tr:hover{
+      background:#fafafa;
+    }
+
+    .actions{
       display:flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 6px;
+      flex-wrap:wrap;
+      gap:8px;
     }
 
-    .table-tools{
+    .empty-state{
+      padding:26px;
+      text-align:center;
+      color:var(--muted);
+    }
+
+    .header-app{
       display:flex;
-      gap: 10px;
+      flex-wrap:wrap;
       align-items:center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:18px;
     }
 
-    .search{
-      flex: 1 1 320px;
-      display:flex;
-      gap: 10px;
-      align-items:center;
+    .app-title p{
+      margin:6px 0 0 0;
+      color:var(--muted);
     }
 
-    .search input{ flex: 1 1 auto; }
-
-    .counter{
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 700;
+    .search-box{
+      min-width:260px;
     }
 
-    .modal{
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      background: rgba(0,0,0,.45);
-      z-index: 9998;
-    }
-    .modal.open{ display:flex; }
-
-    .modal-card{
-      width: min(860px, 100%);
-      background: rgba(255,255,255,.98);
-      border: 1px solid rgba(255,255,255,.7);
-      border-radius: 16px;
-      box-shadow: 0 24px 80px rgba(0,0,0,.28);
-      overflow: hidden;
-      backdrop-filter: blur(8px);
-    }
-    .modal-header{
-      padding: 12px 14px;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(17,24,39,.03), transparent);
-    }
-    .modal-header h3{
-      margin:0;
-      font-size: 14px;
-      letter-spacing: .2px;
-    }
-    .modal-body{ padding: 14px; }
-    .modal-actions{
-      padding: 12px 14px;
-      border-top: 1px solid var(--border);
-      display:flex;
-      gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
+    .hidden{
+      display:none !important;
     }
 
-    .btn-ghost{
-      border-color: #d1d5db;
-      background: #fff;
-    }
+    @media (max-width: 768px){
+      .form-grid{
+        grid-template-columns:1fr;
+      }
 
-    .detail-grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 720px){
-      .detail-grid{ grid-template-columns: 1fr; }
-      table{ min-width: 0; }
-    }
-    .detail-item{
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: #fff;
-    }
-    .detail-item b{
-      display:block;
-      font-size: 12px;
-      color: #374151;
-      margin-bottom: 4px;
-    }
-    .detail-item span{
-      font-size: 13px;
-      color: #111827;
-      word-break: break-word;
-    }
-    .detail-item.full{ grid-column: 1 / -1; }
-    .detail-item pre{
-      margin:0;
-      white-space: pre-wrap;
-      font-family: inherit;
-      font-size: 13px;
-      color: #111827;
-      line-height: 1.4;
-    }
+      .toolbar{
+        align-items:stretch;
+      }
 
-    .detail-item.id-item span {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: .03em;
+      .toolbar-left,
+      .toolbar-right{
+        width:100%;
+      }
+
+      .toolbar-right .search-box{
+        width:100%;
+      }
     }
   </style>
 </head>
-
 <body>
 
-  <!-- 🔒 BLOQUEIO -->
-  <div id="lock" role="dialog" aria-modal="true" aria-labelledby="lock-title">
-    <div class="lock-card">
-      <h2 class="lock-title" id="lock-title">Acesso restrito</h2>
-      <p class="lock-subtitle">Digite a senha para acessar o Protocolo de Atendimento.</p>
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-wrap">
+    <div class="card login-card">
+      <h2>Acesso ao Sistema</h2>
+      <div class="subtitle">
+        Entre com a senha para acessar o painel.
+      </div>
 
-      <form id="lock-form" autocomplete="off">
-        <div class="lock-row">
-          <input class="lock-input" id="lock-pass" type="password" placeholder="Senha" aria-label="Senha" />
-          <button class="lock-btn" type="submit">Entrar</button>
-        </div>
-        <p class="lock-hint">Obs.: proteção local (HTML estático). Para segurança real, use autenticação no servidor.</p>
-      </form>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" placeholder="Digite sua senha" />
+      </div>
+
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="login()">Entrar</button>
+      </div>
+
+      <div id="loginErro" class="error"></div>
+
+      <div class="info-box">
+        Perfil <strong>admin</strong>: acesso total.<br>
+        Perfil <strong>usuário</strong>: pode inserir e editar, mas não pode excluir linhas.
+      </div>
     </div>
   </div>
 
-  <!-- ✅ APP -->
-  <div class="app" id="app">
+  <!-- APP -->
+  <div id="appScreen" class="hidden">
+    <div class="container">
+      <div class="header-app">
+        <div class="app-title">
+          <h1>Painel de Registros</h1>
+          <p>Controle com perfis de administrador e usuário.</p>
+        </div>
 
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>Protocolo de Atendimento</h1>
-          <p>Educação Inclusiva • Registro e Controle de Solicitações</p>
+        <div class="toolbar-right">
+          <span id="perfilBadge" class="badge">Perfil</span>
+          <button class="btn btn-gray" onclick="logout()">Sair</button>
         </div>
       </div>
 
-      <div class="top-actions">
-        <button class="btn btn-solid" id="salvar-dados" type="button" title="Salvar atendimentos no site (compartilhado)">
-          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 21v-8H7v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 3v4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Salvar no site
-        </button>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button class="btn btn-success" onclick="novoRegistro()">Novo registro</button>
+            <button class="btn btn-outline" onclick="limparFormulario()">Limpar formulário</button>
+          </div>
 
-        <button class="btn btn-primary" id="exportar-excel" type="button" title="Exportar atendimentos como .xlsx">
-          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Exportar Excel
-        </button>
-
-        <button class="btn btn-primary" id="carregar-dados" type="button" title="Carregar Atendimento (Excel)">
-          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 21V11m0 0 4 4m-4-4-4 4M5 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Importar Excel
-        </button>
-
-        <button class="btn btn-primary" id="copiar-resumo" type="button" title="Copiar resumo de pendências por PSP">
-          <svg class="icon" viewBox="0 0 24 24" fill="none">
-            <path d="M8 7h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Copiar pendências
-        </button>
-
-        <button class="btn btn-danger" id="limpar-dados" type="button" title="Limpar Atendimentos">
-          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2m-1 0v16a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6h10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Limpar
-        </button>
-      </div>
-    </header>
-
-    <div class="grid">
-      <!-- FORM -->
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <h2>Novo atendimento</h2>
-            <p class="hint">Preencha os dados e registre. O status pode ser alterado na tabela.</p>
+          <div class="toolbar-right">
+            <input
+              id="busca"
+              class="search-box"
+              type="text"
+              placeholder="Buscar por nome, CPF, observação..."
+              oninput="renderTabela()"
+            />
           </div>
         </div>
 
-        <div class="card-body">
-          <form id="form-atendimento">
-            <div class="form-grid">
-              <div class="field col-6">
-                <label for="atendimento">Atendimento</label>
-                <input type="text" id="atendimento" placeholder="Ex.: Solicitação de mediador" required />
-              </div>
-
-              <div class="field col-6">
-                <label for="telefone">Telefone</label>
-                <input type="text" id="telefone" placeholder="(22) 9xxxx-xxxx" required inputmode="tel" />
-              </div>
-
-              <div class="field col-4">
-                <label for="vinculo">Vínculo com a escola</label>
-                <select id="vinculo" required>
-                  <option value="">Selecione</option>
-                  <option value="Diretor">Diretor</option>
-                  <option value="Diretor Adjunto">Diretor Adjunto</option>
-                  <option value="Mãe">Mãe</option>
-                  <option value="Outros">Outros</option>
-                </select>
-              </div>
-
-              <div class="field col-8">
-                <label for="aluno">Aluno</label>
-                <input type="text" id="aluno" placeholder="Nome do aluno" required />
-              </div>
-
-              <div class="field col-3">
-                <label for="idade">Idade</label>
-                <input type="number" id="idade" required min="0" placeholder="0" />
-              </div>
-
-              <div class="field col-3">
-                <label for="ae">AE</label>
-                <input type="text" id="ae" required placeholder="Escola / AE" />
-              </div>
-
-              <div class="field col-3">
-                <label for="turno">Turno</label>
-                <input type="text" id="turno" required placeholder="Manhã / Tarde" />
-              </div>
-
-              <div class="field col-3">
-                <label for="psp">PSP responsável</label>
-                <input type="text" id="psp" required placeholder="Nome do PSP" />
-              </div>
-
-              <div class="field col-12">
-                <label for="solicitacao">Descrição da solicitação</label>
-                <textarea id="solicitacao" required rows="3" placeholder="Descreva o pedido de forma objetiva..."></textarea>
-                <div class="subline">
-                  <p class="muted">Dica: informe contexto e urgência (se houver).</p>
-                  <p class="muted">Campos com * são obrigatórios (validação pelo navegador).</p>
-                </div>
-              </div>
-
-              <div class="field col-6">
-                <label for="tipo">Tipo de solicitação</label>
-                <select id="tipo" required>
-                  <option value="">Selecione</option>
-                  <option value="Pedido de Mediador">Pedido de Mediador</option>
-                  <option value="Pedido de Cuidador">Pedido de Cuidador</option>
-                </select>
-              </div>
-
-              <div class="field col-6">
-                <label for="status">Status do atendimento</label>
-                <select id="status" required>
-                  <option value="Pendente">Pendente</option>
-                  <option value="Em andamento">Em andamento</option>
-                  <option value="Concluído">Concluído</option>
-                  <option value="Cancelado">Cancelado</option>
-                </select>
-              </div>
+        <form id="registroForm" onsubmit="salvarRegistro(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="numero">Número</label>
+              <input type="number" id="numero" placeholder="Ex.: 1" />
             </div>
 
-            <div class="form-actions">
-              <button class="btn btn-solid" type="submit" style="flex: 1 1 240px; justify-content:center;">
-                <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Registrar atendimento
-              </button>
+            <div class="form-group">
+              <label for="nome">Nome</label>
+              <input type="text" id="nome" placeholder="Nome completo" required />
             </div>
-          </form>
-        </div>
-      </section>
 
-      <!-- INFO -->
-      <aside class="card">
-        <div class="card-header">
-          <div>
-            <h2>Operação</h2>
-            <p class="hint">Atalhos e boas práticas</p>
+            <div class="form-group">
+              <label for="cpf">CPF</label>
+              <input type="text" id="cpf" placeholder="000.000.000-00" />
+            </div>
+
+            <div class="form-group">
+              <label for="turno">Turno</label>
+              <select id="turno">
+                <option value="">Selecione</option>
+                <option>Manhã</option>
+                <option>Tarde</option>
+                <option>Noite</option>
+                <option>Integral</option>
+              </select>
+            </div>
+
+            <div class="form-group full">
+              <label for="observacao">Observação</label>
+              <textarea id="observacao" rows="3" placeholder="Digite uma observação"></textarea>
+            </div>
           </div>
-        </div>
-        <div class="card-body">
-          <ul style="margin:0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55;">
-            <li>Use <b>Salvar no site</b> para persistir os dados — ficam visíveis para todos que acessarem este link.</li>
-            <li>Use <b>Exportar Excel</b> para baixar um arquivo .xlsx com todos os registros.</li>
-            <li>Use <b>Importar Excel</b> para carregar registros de um arquivo .xlsx salvo anteriormente.</li>
-            <li>Para consulta rápida, a tabela é ordenada por <b>PSP</b> (exibição).</li>
-            <li>A tabela mostra campos essenciais. Use <b>Ver</b> para detalhes completos.</li>
-            <li>Use <b>Copiar pendências</b> para gerar um resumo por PSP e colar no WhatsApp/e-mail.</li>
-            <li>Use o campo <b>Filtrar</b> acima da tabela para achar qualquer registro rápido.</li>
-            <li>Use <b>Remover</b> (linha vermelha na tabela) para excluir um atendimento específico.</li>
-          </ul>
-        </div>
-      </aside>
-    </div>
 
-    <!-- TABLE -->
-    <section class="card" style="margin-top:16px;">
-      <div class="card-header">
-        <div>
-          <h2>Atendimentos registrados</h2>
-          <p class="hint">Tabela enxuta (detalhes no botão "Ver").</p>
-        </div>
+          <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-primary" type="submit">Salvar</button>
+            <button class="btn btn-outline" type="button" onclick="cancelarEdicao()">Cancelar edição</button>
+          </div>
+        </form>
       </div>
 
-      <div class="card-body">
-        <div class="table-tools">
-          <div class="search">
-            <input id="filtro-tabela" type="text" placeholder="Filtrar por aluno, AE, PSP, telefone, tipo, status, ID..." />
-            <button class="btn btn-primary" id="limpar-filtro" type="button">Limpar filtro</button>
+      <div class="card">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <h3 style="margin:0;">Registros</h3>
+            <span id="totalRegistros" class="muted"></span>
           </div>
-          <div class="counter" id="contador-tabela">0 de 0</div>
         </div>
 
         <div class="table-wrap">
-          <table id="tabela-atendimentos">
+          <table>
             <thead>
               <tr>
-                <th>Nº</th>
-                <th>ID</th>
-                <th>Data/Hora</th>
-                <th>Aluno</th>
-                <th>AE</th>
-                <th>PSP</th>
-                <th>Tipo</th>
-                <th>Status</th>
-                <th>Ações</th>
+                <th style="width:80px;">Nº</th>
+                <th>Nome</th>
+                <th style="width:170px;">CPF</th>
+                <th style="width:120px;">Turno</th>
+                <th>Observação</th>
+                <th style="width:180px;">Ações</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="tbody"></tbody>
           </table>
-        </div>
-      </div>
-    </section>
 
-  </div>
-
-  <!-- ✅ MODAL EDITAR -->
-  <div class="modal" id="modal-editar" role="dialog" aria-modal="true" aria-labelledby="modal-editar-title">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="modal-editar-title">Editar atendimento</h3>
-        <button class="acoes-btn" type="button" id="fechar-modal-editar" aria-label="Fechar">✕</button>
-      </div>
-
-      <form id="form-editar">
-        <div class="modal-body">
-          <div class="form-grid">
-            <div class="field col-6">
-              <label for="edit-atendimento">Atendimento</label>
-              <input type="text" id="edit-atendimento" required />
-            </div>
-
-            <div class="field col-6">
-              <label for="edit-telefone">Telefone</label>
-              <input type="text" id="edit-telefone" required inputmode="tel" />
-            </div>
-
-            <div class="field col-4">
-              <label for="edit-vinculo">Vínculo com a escola</label>
-              <select id="edit-vinculo" required>
-                <option value="">Selecione</option>
-                <option value="Diretor">Diretor</option>
-                <option value="Diretor Adjunto">Diretor Adjunto</option>
-                <option value="Mãe">Mãe</option>
-                <option value="Outros">Outros</option>
-              </select>
-            </div>
-
-            <div class="field col-8">
-              <label for="edit-aluno">Aluno</label>
-              <input type="text" id="edit-aluno" required />
-            </div>
-
-            <div class="field col-3">
-              <label for="edit-idade">Idade</label>
-              <input type="number" id="edit-idade" min="0" required />
-            </div>
-
-            <div class="field col-3">
-              <label for="edit-ae">AE</label>
-              <input type="text" id="edit-ae" required />
-            </div>
-
-            <div class="field col-3">
-              <label for="edit-turno">Turno</label>
-              <input type="text" id="edit-turno" required />
-            </div>
-
-            <div class="field col-3">
-              <label for="edit-psp">PSP responsável</label>
-              <input type="text" id="edit-psp" required />
-            </div>
-
-            <div class="field col-12">
-              <label for="edit-solicitacao">Descrição da solicitação</label>
-              <textarea id="edit-solicitacao" rows="3" required></textarea>
-            </div>
-
-            <div class="field col-6">
-              <label for="edit-tipo">Tipo de solicitação</label>
-              <select id="edit-tipo" required>
-                <option value="">Selecione</option>
-                <option value="Pedido de Mediador">Pedido de Mediador</option>
-                <option value="Pedido de Cuidador">Pedido de Cuidador</option>
-              </select>
-            </div>
-
-            <div class="field col-6">
-              <label for="edit-status">Status do atendimento</label>
-              <select id="edit-status" required>
-                <option value="Pendente">Pendente</option>
-                <option value="Em andamento">Em andamento</option>
-                <option value="Concluído">Concluído</option>
-                <option value="Cancelado">Cancelado</option>
-              </select>
-            </div>
+          <div id="emptyState" class="empty-state hidden">
+            Nenhum registro encontrado.
           </div>
         </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-ghost" type="button" id="cancelar-edicao">Cancelar</button>
-          <button class="btn btn-solid" type="submit">Salvar alterações</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ✅ MODAL VER (DETALHES) -->
-  <div class="modal" id="modal-ver" role="dialog" aria-modal="true" aria-labelledby="modal-ver-title">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="modal-ver-title">Detalhes do atendimento</h3>
-        <button class="acoes-btn" type="button" id="fechar-modal-ver" aria-label="Fechar">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="detail-grid" id="ver-grid"></div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn btn-ghost" type="button" id="fechar-ver-bottom">Fechar</button>
       </div>
     </div>
   </div>
 
-  <!-- LOCK -->
   <script>
-    (function(){
-      const PASSWORD = "cEcsG@41"; // <<< TROQUE AQUI
-      const lock = document.getElementById("lock");
-      const app  = document.getElementById("app");
-      const form = document.getElementById("lock-form");
-      const input = document.getElementById("lock-pass");
+    /* =========================
+       CONFIGURAÇÃO DE ACESSO
+    ========================= */
+    const AUTH = {
+      admin: {
+        password: "admin",
+        role: "admin",
+        label: "Administrador"
+      },
+      user: {
+        password: "usuario123",
+        role: "user",
+        label: "Usuário"
+      }
+    };
 
-      function unlock(){
-        lock.style.display = "none";
-        app.style.display = "block";
+    /* =========================
+       ESTADO DA APLICAÇÃO
+    ========================= */
+    let CURRENT_ROLE = null;
+    let CURRENT_LABEL = "";
+    let dados = JSON.parse(localStorage.getItem("painel_dados")) || [];
+    let editIndex = null;
+
+    /* =========================
+       ELEMENTOS
+    ========================= */
+    const loginScreen = document.getElementById("loginScreen");
+    const appScreen = document.getElementById("appScreen");
+    const loginErro = document.getElementById("loginErro");
+    const perfilBadge = document.getElementById("perfilBadge");
+    const tbody = document.getElementById("tbody");
+    const emptyState = document.getElementById("emptyState");
+    const totalRegistros = document.getElementById("totalRegistros");
+
+    const numeroEl = document.getElementById("numero");
+    const nomeEl = document.getElementById("nome");
+    const cpfEl = document.getElementById("cpf");
+    const turnoEl = document.getElementById("turno");
+    const observacaoEl = document.getElementById("observacao");
+    const buscaEl = document.getElementById("busca");
+
+    /* =========================
+       LOGIN / LOGOUT
+    ========================= */
+    function login() {
+      const senha = document.getElementById("senha").value.trim();
+
+      loginErro.style.display = "none";
+      loginErro.textContent = "";
+
+      if (senha === AUTH.admin.password) {
+        CURRENT_ROLE = AUTH.admin.role;
+        CURRENT_LABEL = AUTH.admin.label;
+        entrarSistema();
+        return;
       }
 
-      form.addEventListener("submit", function(ev){
-        ev.preventDefault();
-        const value = (input.value || "").trim();
-        if(value === PASSWORD){
-          try { sessionStorage.setItem("protocolo_unlock", "1"); } catch(e) {}
-          unlock();
-        }else{
-          input.value = "";
-          input.focus();
-          alert("Senha incorreta.");
-        }
-      });
-
-      try{
-        if(sessionStorage.getItem("protocolo_unlock") === "1"){
-          unlock();
-        }else{
-          input.focus();
-        }
-      }catch(e){
-        input.focus();
+      if (senha === AUTH.user.password) {
+        CURRENT_ROLE = AUTH.user.role;
+        CURRENT_LABEL = AUTH.user.label;
+        entrarSistema();
+        return;
       }
-    })();
-  </script>
 
-  <!-- SheetJS -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-  <script>
-    const STORAGE_KEY = "atendimentos";
-    let editId = null;
-    let _cache = [];
-
-    function gerarId() {
-      const atendimentos = _cache;
-      let max = 0;
-      for (const a of atendimentos) {
-        const match = (a.id || "").match(/^ATD-(\d+)$/);
-        if (match) {
-          const n = parseInt(match[1], 10);
-          if (n > max) max = n;
-        }
-      }
-      const proximo = String(max + 1).padStart(4, "0");
-      return "ATD-" + proximo;
+      loginErro.textContent = "Senha inválida.";
+      loginErro.style.display = "block";
     }
 
-    function getAtendimentos() {
-      return _cache.slice();
+    function entrarSistema() {
+      loginScreen.classList.add("hidden");
+      appScreen.classList.remove("hidden");
+      aplicarPerfil();
+      renderTabela();
     }
 
-    function setAtendimentos(lista) {
-      _cache = lista;
+    function logout() {
+      CURRENT_ROLE = null;
+      CURRENT_LABEL = "";
+      editIndex = null;
+
+      document.getElementById("senha").value = "";
+      loginScreen.classList.remove("hidden");
+      appScreen.classList.add("hidden");
+      limparFormulario();
     }
 
-    // ─── JSONBin.io — storage compartilhado ──────────────────────────────────
-    const JSONBIN_KEY = "$2a$10$UysIHXuZc3gSJiGlA..wruUCvTHTiHK7C9XVm5QHOAMGqV/ue2PFi";
-    const JSONBIN_BASE = "https://api.jsonbin.io/v3";
-    let JSONBIN_BIN_ID = localStorage.getItem("jsonbin_bin_id") || "69ad51f2ae596e708f6c7426";
+    /* =========================
+       PERFIL / PERMISSÕES
+    ========================= */
+    function aplicarPerfil() {
+      perfilBadge.textContent = `Perfil: ${CURRENT_LABEL}`;
 
-    async function criarBinSeNecessario() {
-      if (JSONBIN_BIN_ID) return true;
-      try {
-        const res = await fetch(JSONBIN_BASE + "/b", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Master-Key": JSONBIN_KEY,
-            "X-Bin-Name": "protocolo-atendimentos",
-            "X-Bin-Private": "true"
-          },
-          body: JSON.stringify({ atendimentos: [] })
-        });
-        const data = await res.json();
-        JSONBIN_BIN_ID = data.metadata && data.metadata.id;
-        if (JSONBIN_BIN_ID) {
-          localStorage.setItem("jsonbin_bin_id", JSONBIN_BIN_ID);
-          return true;
-        }
-        return false;
-      } catch(e) {
-        return false;
-      }
-    }
-
-    async function carregarDoStorage() {
-      const ok = await criarBinSeNecessario();
-      if (!ok) { _cache = []; return; }
-      try {
-        const res = await fetch(JSONBIN_BASE + "/b/" + JSONBIN_BIN_ID + "/latest", {
-          headers: { "X-Master-Key": JSONBIN_KEY }
-        });
-        const data = await res.json();
-        _cache = (data.record && data.record.atendimentos) || [];
-      } catch(e) {
-        _cache = [];
+      if (CURRENT_ROLE === "admin") {
+        perfilBadge.className = "badge";
+      } else {
+        perfilBadge.className = "badge user";
       }
     }
 
-    async function salvarNoStorage() {
-      const ok = await criarBinSeNecessario();
-      if (!ok) return false;
-      try {
-        const res = await fetch(JSONBIN_BASE + "/b/" + JSONBIN_BIN_ID, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Master-Key": JSONBIN_KEY
-          },
-          body: JSON.stringify({ atendimentos: _cache })
-        });
-        return res.ok;
-      } catch(e) {
-        return false;
-      }
+    function usuarioPodeExcluir() {
+      return CURRENT_ROLE === "admin";
     }
 
-    function mostrarAvisoSeNaoSuporta() {
-      // JSONBin funciona em todos os navegadores
+    /* =========================
+       FORMULÁRIO
+    ========================= */
+    function novoRegistro() {
+      limparFormulario();
+      nomeEl.focus();
     }
 
-    document.getElementById("form-atendimento").addEventListener("submit", function (e) {
-      e.preventDefault();
+    function limparFormulario() {
+      document.getElementById("registroForm").reset();
+      editIndex = null;
+      numeroEl.value = "";
+      nomeEl.value = "";
+      cpfEl.value = "";
+      turnoEl.value = "";
+      observacaoEl.value = "";
+    }
 
-      const atendimento = {
-        id: gerarId(),
-        dataHora: new Date().toLocaleString(),
-        atendimento: document.getElementById("atendimento").value.trim(),
-        telefone: document.getElementById("telefone").value.trim(),
-        vinculo: document.getElementById("vinculo").value,
-        aluno: document.getElementById("aluno").value.trim(),
-        idade: document.getElementById("idade").value,
-        ae: document.getElementById("ae").value.trim(),
-        turno: document.getElementById("turno").value.trim(),
-        psp: document.getElementById("psp").value.trim(),
-        solicitacao: document.getElementById("solicitacao").value.trim(),
-        tipo: document.getElementById("tipo").value,
-        status: document.getElementById("status").value
+    function cancelarEdicao() {
+      limparFormulario();
+    }
+
+    function salvarRegistro(event) {
+      event.preventDefault();
+
+      const registro = {
+        numero: numeroEl.value.trim(),
+        nome: nomeEl.value.trim(),
+        cpf: cpfEl.value.trim(),
+        turno: turnoEl.value.trim(),
+        observacao: observacaoEl.value.trim()
       };
 
-      const atendimentos = getAtendimentos();
-      atendimentos.push(atendimento);
-      setAtendimentos(atendimentos);
-
-      listarAtendimentos();
-      e.target.reset();
-      mostrarIndicadorNaoSalvo(true);
-    });
-
-    function statusToBadge(statusRaw){
-      const s = (statusRaw || "Pendente").toString().trim().toLowerCase();
-
-      if (s === "concluído" || s === "concluido" || s === "atendido") {
-        return { cls: "badge-concluido", label: "Concluído" };
+      if (!registro.nome) {
+        alert("Preencha o nome.");
+        return;
       }
-      if (s === "em andamento" || s === "andamento") {
-        return { cls: "badge-andamento", label: "Em andamento" };
+
+      if (editIndex !== null) {
+        dados[editIndex] = registro;
+      } else {
+        dados.push(registro);
       }
-      if (s === "cancelado" || s === "cancelada") {
-        return { cls: "badge-cancelado", label: "Cancelado" };
-      }
-      return { cls: "badge-pendente", label: "Pendente" };
+
+      salvarDados();
+      renderTabela();
+      limparFormulario();
     }
 
-    function listarAtendimentos() {
-      const tbody = document.querySelector("#tabela-atendimentos tbody");
+    function editarLinha(index) {
+      const item = getDadosFiltrados()[index];
+      if (!item) return;
+
+      const realIndex = dados.findIndex(reg =>
+        reg.numero === item.numero &&
+        reg.nome === item.nome &&
+        reg.cpf === item.cpf &&
+        reg.turno === item.turno &&
+        reg.observacao === item.observacao
+      );
+
+      if (realIndex === -1) return;
+
+      editIndex = realIndex;
+
+      numeroEl.value = dados[realIndex].numero || "";
+      nomeEl.value = dados[realIndex].nome || "";
+      cpfEl.value = dados[realIndex].cpf || "";
+      turnoEl.value = dados[realIndex].turno || "";
+      observacaoEl.value = dados[realIndex].observacao || "";
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function excluirLinha(index) {
+      if (!usuarioPodeExcluir()) {
+        alert("Você não tem permissão para excluir linhas.");
+        return;
+      }
+
+      const item = getDadosFiltrados()[index];
+      if (!item) return;
+
+      const realIndex = dados.findIndex(reg =>
+        reg.numero === item.numero &&
+        reg.nome === item.nome &&
+        reg.cpf === item.cpf &&
+        reg.turno === item.turno &&
+        reg.observacao === item.observacao
+      );
+
+      if (realIndex === -1) return;
+
+      const confirmar = confirm(`Deseja realmente excluir o registro de "${dados[realIndex].nome}"?`);
+      if (!confirmar) return;
+
+      dados.splice(realIndex, 1);
+      salvarDados();
+      renderTabela();
+      limparFormulario();
+    }
+
+    /* =========================
+       DADOS
+    ========================= */
+    function salvarDados() {
+      localStorage.setItem("painel_dados", JSON.stringify(dados));
+    }
+
+    function getDadosFiltrados() {
+      const termo = buscaEl.value.trim().toLowerCase();
+
+      if (!termo) return dados;
+
+      return dados.filter(item => {
+        const numero = String(item.numero || "").toLowerCase();
+        const nome = String(item.nome || "").toLowerCase();
+        const cpf = String(item.cpf || "").toLowerCase();
+        const turno = String(item.turno || "").toLowerCase();
+        const observacao = String(item.observacao || "").toLowerCase();
+
+        return (
+          numero.includes(termo) ||
+          nome.includes(termo) ||
+          cpf.includes(termo) ||
+          turno.includes(termo) ||
+          observacao.includes(termo)
+        );
+      });
+    }
+
+    /* =========================
+       TABELA
+    ========================= */
+    function renderTabela() {
+      const lista = getDadosFiltrados();
       tbody.innerHTML = "";
 
-      const filtroEl = document.getElementById("filtro-tabela");
-      const contadorEl = document.getElementById("contador-tabela");
+      totalRegistros.textContent = `${lista.length} registro(s)`;
 
-      const filtro = (filtroEl?.value || "").trim().toLowerCase();
+      if (lista.length === 0) {
+        emptyState.classList.remove("hidden");
+        return;
+      }
 
-      const atendimentosAll = getAtendimentos().slice();
-      atendimentosAll.sort((a, b) => (a.psp || "").localeCompare(b.psp || ""));
+      emptyState.classList.add("hidden");
 
-      const atendimentos = !filtro
-        ? atendimentosAll
-        : atendimentosAll.filter(a => {
-            const blob = [
-              a.id, a.dataHora, a.atendimento, a.telefone, a.vinculo, a.aluno, a.idade,
-              a.ae, a.turno, a.psp, a.solicitacao, a.tipo, a.status
-            ].join(" ").toLowerCase();
-            return blob.includes(filtro);
-          });
+      lista.forEach((item, index) => {
+        const tr = document.createElement("tr");
 
-      if (contadorEl) contadorEl.textContent = `${atendimentos.length} de ${atendimentosAll.length}`;
+        tr.innerHTML = `
+          <td>${escapeHtml(item.numero || "")}</td>
+          <td>${escapeHtml(item.nome || "")}</td>
+          <td>${escapeHtml(item.cpf || "")}</td>
+          <td>${escapeHtml(item.turno || "")}</td>
+          <td>${escapeHtml(item.observacao || "")}</td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-primary" type="button" onclick="editarLinha(${index})">Editar</button>
+              ${
+                usuarioPodeExcluir()
+                  ? `<button class="btn btn-danger" type="button" onclick="excluirLinha(${index})">Excluir</button>`
+                  : ``
+              }
+            </div>
+          </td>
+        `;
 
-      atendimentos.forEach((a, idx) => {
-        const row = document.createElement("tr");
-
-        // Nº
-        const tdNum = document.createElement("td");
-        tdNum.textContent = String(idx + 1);
-        row.appendChild(tdNum);
-
-        // ID
-        const tdId = document.createElement("td");
-        tdId.className = "td-id";
-        tdId.textContent = a.id ?? "";
-        tdId.title = a.id ?? "";
-        row.appendChild(tdId);
-
-        // Demais colunas
-        const cells = [a.dataHora, a.aluno, a.ae, a.psp, a.tipo];
-        cells.forEach((val) => {
-          const td = document.createElement("td");
-          td.textContent = val ?? "";
-          row.appendChild(td);
-        });
-
-        // Status (badge)
-        const tdStatus = document.createElement("td");
-        const badge = document.createElement("span");
-        const b = statusToBadge(a.status);
-        badge.className = "badge " + b.cls;
-        badge.textContent = b.label;
-        tdStatus.appendChild(badge);
-        row.appendChild(tdStatus);
-
-        // Ações: Ver + Editar + Alterar status + Remover
-        const tdAcoes = document.createElement("td");
-        const acoesFlex = document.createElement("div");
-        acoesFlex.className = "acoes-wrap";
-
-        const btnVer = document.createElement("button");
-        btnVer.type = "button";
-        btnVer.className = "acoes-btn";
-        btnVer.textContent = "Ver";
-        btnVer.addEventListener("click", () => abrirVer(a.id));
-        acoesFlex.appendChild(btnVer);
-
-        const btnEditar = document.createElement("button");
-        btnEditar.type = "button";
-        btnEditar.className = "acoes-btn";
-        btnEditar.textContent = "Editar";
-        btnEditar.addEventListener("click", () => abrirEditar(a.id));
-        acoesFlex.appendChild(btnEditar);
-
-        const btnStatus = document.createElement("button");
-        btnStatus.type = "button";
-        btnStatus.className = "acoes-btn";
-        btnStatus.textContent = "Alterar status";
-        btnStatus.addEventListener("click", () => editarStatus(a.id));
-        acoesFlex.appendChild(btnStatus);
-
-        const btnRemover = document.createElement("button");
-        btnRemover.type = "button";
-        btnRemover.className = "acoes-btn acoes-btn-remover";
-        btnRemover.textContent = "Remover";
-        btnRemover.addEventListener("click", () => removerAtendimento(a.id, a.aluno));
-        acoesFlex.appendChild(btnRemover);
-
-        tdAcoes.appendChild(acoesFlex);
-        row.appendChild(tdAcoes);
-        tbody.appendChild(row);
+        tbody.appendChild(tr);
       });
     }
 
-    // ✅ NOVA FUNÇÃO: Remover atendimento por ID
-    function removerAtendimento(id, nomeAluno) {
-      const label = nomeAluno ? `"${nomeAluno}"` : `ID ${id}`;
-      if (!confirm(`Deseja remover o atendimento de ${label}?\n\nEsta ação não pode ser desfeita localmente. Lembre-se de clicar em "Salvar no site" para persistir a remoção.`)) {
-        return;
-      }
-
-      const atendimentos = getAtendimentos();
-      const novaLista = atendimentos.filter(a => a.id !== id);
-      setAtendimentos(novaLista);
-      listarAtendimentos();
-      mostrarIndicadorNaoSalvo(true);
+    /* =========================
+       UTILITÁRIOS
+    ========================= */
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    function editarStatus(id) {
-      const atendimentos = getAtendimentos();
-      const i = atendimentos.findIndex(x => x.id === id);
-      if (i === -1) return;
-
-      const ordem = ["Pendente", "Em andamento", "Concluído", "Cancelado"];
-      const atual = (atendimentos[i].status || "Pendente").toString();
-      const idx = ordem.findIndex(s => s.toLowerCase() === atual.toLowerCase());
-      atendimentos[i].status = ordem[(idx + 1 + ordem.length) % ordem.length];
-
-      setAtendimentos(atendimentos);
-      listarAtendimentos();
-      mostrarIndicadorNaoSalvo(true);
-    }
-
-    // ✅ EDITAR (Modal)
-    function abrirEditar(id){
-      const atendimentos = getAtendimentos();
-      const item = atendimentos.find(x => x.id === id);
-      if(!item) return;
-
-      editId = id;
-
-      document.getElementById("edit-atendimento").value = item.atendimento || "";
-      document.getElementById("edit-telefone").value = item.telefone || "";
-      document.getElementById("edit-vinculo").value = item.vinculo || "";
-      document.getElementById("edit-aluno").value = item.aluno || "";
-      document.getElementById("edit-idade").value = item.idade ?? "";
-      document.getElementById("edit-ae").value = item.ae || "";
-      document.getElementById("edit-turno").value = item.turno || "";
-      document.getElementById("edit-psp").value = item.psp || "";
-      document.getElementById("edit-solicitacao").value = item.solicitacao || "";
-      document.getElementById("edit-tipo").value = item.tipo || "";
-      document.getElementById("edit-status").value = item.status || "Pendente";
-
-      const modal = document.getElementById("modal-editar");
-      modal.classList.add("open");
-
-      setTimeout(() => document.getElementById("edit-atendimento").focus(), 0);
-    }
-
-    function fecharEditar(){
-      editId = null;
-      document.getElementById("modal-editar").classList.remove("open");
-    }
-
-    document.getElementById("fechar-modal-editar").addEventListener("click", fecharEditar);
-    document.getElementById("cancelar-edicao").addEventListener("click", fecharEditar);
-
-    document.getElementById("modal-editar").addEventListener("click", (e) => {
-      if (e.target && e.target.id === "modal-editar") fecharEditar();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      const editarOpen = document.getElementById("modal-editar").classList.contains("open");
-      const verOpen = document.getElementById("modal-ver").classList.contains("open");
-      if ((editarOpen || verOpen) && e.key === "Escape") {
-        if (editarOpen) fecharEditar();
-        if (verOpen) fecharVer();
+    /* =========================
+       ENTER NO LOGIN
+    ========================= */
+    document.getElementById("senha").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        login();
       }
     });
 
-    document.getElementById("form-editar").addEventListener("submit", (e) => {
-      e.preventDefault();
-      if(!editId) return;
-
-      const atendimentos = getAtendimentos();
-      const i = atendimentos.findIndex(x => x.id === editId);
-      if(i === -1) { fecharEditar(); return; }
-
-      atendimentos[i] = {
-        ...atendimentos[i],
-        atendimento: document.getElementById("edit-atendimento").value.trim(),
-        telefone: document.getElementById("edit-telefone").value.trim(),
-        vinculo: document.getElementById("edit-vinculo").value,
-        aluno: document.getElementById("edit-aluno").value.trim(),
-        idade: document.getElementById("edit-idade").value,
-        ae: document.getElementById("edit-ae").value.trim(),
-        turno: document.getElementById("edit-turno").value.trim(),
-        psp: document.getElementById("edit-psp").value.trim(),
-        solicitacao: document.getElementById("edit-solicitacao").value.trim(),
-        tipo: document.getElementById("edit-tipo").value,
-        status: document.getElementById("edit-status").value
-      };
-
-      setAtendimentos(atendimentos);
-      listarAtendimentos();
-      fecharEditar();
-      mostrarIndicadorNaoSalvo(true);
-    });
-
-    // ✅ VER (detalhes em modal)
-    function abrirVer(id){
-      const atendimentos = getAtendimentos();
-      const item = atendimentos.find(x => x.id === id);
-      if(!item) return;
-
-      const grid = document.getElementById("ver-grid");
-      grid.innerHTML = "";
-
-      function add(label, value, full=false, pre=false, isId=false){
-        const d = document.createElement("div");
-        d.className = "detail-item" + (full ? " full" : "") + (isId ? " id-item" : "");
-        const b = document.createElement("b");
-        b.textContent = label;
-        d.appendChild(b);
-
-        if(pre){
-          const p = document.createElement("pre");
-          p.textContent = (value ?? "").toString() || "-";
-          d.appendChild(p);
-        }else{
-          const s = document.createElement("span");
-          s.textContent = (value ?? "").toString() || "-";
-          d.appendChild(s);
-        }
-        grid.appendChild(d);
-      }
-
-      add("ID do atendimento", item.id, true, false, true);
-      add("Data/Hora", item.dataHora);
-      add("Status", item.status);
-      add("Tipo", item.tipo);
-      add("PSP responsável", item.psp);
-      add("Aluno", item.aluno);
-      add("Idade", item.idade);
-      add("AE", item.ae);
-      add("Turno", item.turno);
-      add("Vínculo com a escola", item.vinculo);
-      add("Telefone", item.telefone);
-      add("Atendimento", item.atendimento, true);
-      add("Descrição da solicitação", item.solicitacao, true, true);
-
-      document.getElementById("modal-ver").classList.add("open");
-    }
-
-    function fecharVer(){
-      document.getElementById("modal-ver").classList.remove("open");
-    }
-
-    document.getElementById("fechar-modal-ver").addEventListener("click", fecharVer);
-    document.getElementById("fechar-ver-bottom").addEventListener("click", fecharVer);
-
-    document.getElementById("modal-ver").addEventListener("click", (e) => {
-      if (e.target && e.target.id === "modal-ver") fecharVer();
-    });
-
-    // ─── Indicador de "não salvo" ────────────────────────────────────
-    function mostrarIndicadorNaoSalvo(ativo) {
-      const btn = document.getElementById("salvar-dados");
-      if (!btn) return;
-      if (ativo) {
-        btn.style.boxShadow = "0 0 0 3px rgba(245,158,11,.55)";
-        btn.title = "Há alterações não salvas — clique para salvar no site";
-      } else {
-        btn.style.boxShadow = "";
-        btn.title = "Salvar atendimentos no site (compartilhado)";
-      }
-    }
-
-    document.getElementById("limpar-dados").addEventListener("click", async () => {
-      if (confirm("Deseja apagar todos os atendimentos? Esta ação também apaga do site (compartilhado).")) {
-        setAtendimentos([]);
-        await salvarNoStorage();
-        mostrarIndicadorNaoSalvo(false);
-        listarAtendimentos();
-      }
-    });
-
-    function montarWorkbookAtendimentos(atendimentos) {
-      const exportRows = atendimentos.map(a => ({
-        "ID": a.id,
-        "Data/Hora": a.dataHora,
-        "Atendimento": a.atendimento,
-        "Telefone": a.telefone,
-        "Vínculo com a escola": a.vinculo,
-        "Aluno": a.aluno,
-        "Idade": a.idade,
-        "AE": a.ae,
-        "Turno": a.turno,
-        "PSP responsável": a.psp,
-        "Descrição da solicitação": a.solicitacao,
-        "Tipo de solicitação": a.tipo,
-        "Status do atendimento": a.status
-      }));
-
-      const ws = XLSX.utils.json_to_sheet(exportRows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Atendimentos");
-      return wb;
-    }
-
-    // Salvar no storage compartilhado
-    document.getElementById("salvar-dados").addEventListener("click", async () => {
-      const atendimentos = getAtendimentos();
-
-      if (atendimentos.length === 0) {
-        alert("Não há atendimentos para salvar.");
-        return;
-      }
-
-      const btn = document.getElementById("salvar-dados");
-      btn.disabled = true;
-      btn.textContent = "Salvando…";
-
-      const ok = await salvarNoStorage();
-
-      btn.disabled = false;
-      btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 21v-8H7v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 3v4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Salvar no site`;
-
-      if (ok) {
-        mostrarIndicadorNaoSalvo(false);
-        alert("Dados salvos com sucesso! Visíveis para todos os usuários.");
-      } else {
-        alert("Falha ao salvar. Tente novamente.");
-      }
-    });
-
-    // Exportar .xlsx
-    document.getElementById("exportar-excel").addEventListener("click", () => {
-      const atendimentos = getAtendimentos();
-      if (atendimentos.length === 0) {
-        alert("Não há atendimentos para exportar.");
-        return;
-      }
-      const wb = montarWorkbookAtendimentos(atendimentos);
-      XLSX.writeFile(wb, "atendimentos.xlsx");
-    });
-
-    function keyNorm(s){
-      return (s || "")
-        .toString()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "_")
-        .replace(/^_+|_+$/g, "");
-    }
-
-    function rowNorm(r){
-      const out = {};
-      for (const k in r) out[keyNorm(k)] = r[k];
-      return out;
-    }
-
-    document.getElementById("carregar-dados").addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-      input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        try {
-          const data = await file.arrayBuffer();
-          const wb = XLSX.read(data, { type: "array" });
-          const ws = wb.Sheets[wb.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
-
-          if (!Array.isArray(rows)) throw new Error("Formato inválido.");
-
-          const normalizados = rows.map(raw => {
-            const r = rowNorm(raw);
-
-            return {
-              id: (r.id || gerarId()).toString(),
-              dataHora: (r.data_hora || r.datahora || new Date().toLocaleString()).toString(),
-              atendimento: (r.atendimento || "").toString(),
-              telefone: (r.telefone || "").toString(),
-              vinculo: (r.vinculo || r.vinculo_com_a_escola || "").toString(),
-              aluno: (r.aluno || "").toString(),
-              idade: (r.idade || "").toString(),
-              ae: (r.ae || "").toString(),
-              turno: (r.turno || "").toString(),
-              psp: (r.psp_responsavel || r.psp || "").toString(),
-              solicitacao: (r.solicitacao || r.descricao_da_solicitacao || "").toString(),
-              tipo: (r.tipo || r.tipo_de_solicitacao || "").toString(),
-              status: (r.status || r.status_do_atendimento || "Pendente").toString()
-            };
-          });
-
-          setAtendimentos(normalizados);
-          listarAtendimentos();
-          mostrarIndicadorNaoSalvo(true);
-          alert("Atendimentos importados com sucesso! Clique em 'Salvar no site' para persistir.");
-        } catch (err) {
-          alert("Arquivo inválido ou corrompido. Não foi possível importar.");
-        }
-      };
-
-      input.click();
-    });
-
-    async function copiarResumoPendenciasPorPSP() {
-      const atendimentos = getAtendimentos();
-      const pendentes = atendimentos.filter(a => {
-        const s = (a.status || "Pendente").toString().toLowerCase();
-        return !(s === "concluído" || s === "concluido" || s === "atendido");
-      });
-
-      if (pendentes.length === 0) {
-        alert("Não há pendências.");
-        return;
-      }
-
-      const grupos = new Map();
-      for (const a of pendentes) {
-        const psp = (a.psp || "Sem PSP").trim() || "Sem PSP";
-        if (!grupos.has(psp)) grupos.set(psp, []);
-        grupos.get(psp).push(a);
-      }
-
-      const pspsOrdenados = Array.from(grupos.keys()).sort((x, y) => x.localeCompare(y));
-
-      const linhas = [];
-      linhas.push(`📌 Resumo de pendências (total: ${pendentes.length})`);
-      linhas.push(`Gerado em: ${new Date().toLocaleString()}`);
-      linhas.push("");
-
-      for (const psp of pspsOrdenados) {
-        const itens = grupos.get(psp);
-        linhas.push(`👤 ${psp}: ${itens.length} pendência(s)`);
-
-        itens.slice(0, 10).forEach((a, idx) => {
-          linhas.push(`  ${idx + 1}. ${a.aluno || "-"} • ${a.tipo || "-"} • AE: ${a.ae || "-"}`);
-        });
-
-        if (itens.length > 10) {
-          linhas.push(`  … +${itens.length - 10} item(ns)`);
-        }
-
-        linhas.push("");
-      }
-
-      const texto = linhas.join("\n");
-
-      try {
-        await navigator.clipboard.writeText(texto);
-        alert("Resumo copiado para a área de transferência!");
-      } catch (e) {
-        prompt("Seu navegador bloqueou o copiar automático. Copie manualmente:", texto);
-      }
-    }
-
-    document.getElementById("copiar-resumo").addEventListener("click", copiarResumoPendenciasPorPSP);
-
-    document.getElementById("filtro-tabela").addEventListener("input", listarAtendimentos);
-
-    document.getElementById("limpar-filtro").addEventListener("click", () => {
-      const el = document.getElementById("filtro-tabela");
-      el.value = "";
-      el.focus();
-      listarAtendimentos();
-    });
-
-    window.onload = async () => {
-      mostrarAvisoSeNaoSuporta();
-      await carregarDoStorage();
-      listarAtendimentos();
-    };
+    /* =========================
+       INICIALIZAÇÃO
+    ========================= */
+    renderTabela();
   </script>
 </body>
 </html>
-
