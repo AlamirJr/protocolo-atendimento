@@ -675,6 +675,17 @@
           Salvar no site
         </button>
 
+        <!-- ATUALIZAR DADOS -->
+        <button class="btn btn-primary" id="btn-atualizar" type="button" title="Buscar dados mais recentes do servidor">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 3v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 21v-5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Atualizar
+        </button>
+
         <!-- EXPORTAR EXCEL -->
         <button class="btn btn-primary" id="btn-exportar-excel" type="button">
           <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -813,6 +824,7 @@
         <div class="card-body">
           <ul style="margin:0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55;">
             <li>Os dados são <b>salvos automaticamente</b> após cada ação (registro, edição, remoção). Use <b>Salvar no site</b> para forçar um salvamento manual a qualquer momento.</li>
+            <li>Use <b>Atualizar</b> para buscar os dados mais recentes do servidor. A página também se atualiza automaticamente a cada 2 minutos.</li>
             <li>Use <b>Exportar Excel</b> para baixar um arquivo .xlsx com todos os registros.</li>
             <li>Use <b>Importar Excel</b> para carregar registros de um arquivo .xlsx salvo anteriormente.</li>
             <li>Para consulta rápida, a tabela é ordenada por <b>PSP</b> (exibição).</li>
@@ -1070,14 +1082,23 @@
     let atendimentosAll = [];
 
     /* ---------- JSONBin: ler ---------- */
-    async function carregarDoServidor(){
-      setBtnSalvarLoading(true);
+    async function carregarDoServidor(silencioso = false){
+      const btnAtualizar = document.getElementById("btn-atualizar");
+
+      if (!silencioso){
+        // Feedback visual no botão Atualizar
+        if (btnAtualizar){
+          btnAtualizar.disabled = true;
+          btnAtualizar.innerHTML = `<span class="spinner spinner-dark"></span> Atualizando…`;
+        }
+        setBtnSalvarLoading(true);
+      }
+
       try {
         const res = await fetch(`${JSONBIN_BASE}/${JSONBIN_BIN_ID}/latest`, {
           headers: { "X-Master-Key": JSONBIN_API_KEY }
         });
 
-        // 401 = chave errada | 404 = bin não existe
         if (res.status === 401) throw new Error("auth");
         if (res.status === 404) throw new Error("notfound");
         if (!res.ok) throw new Error("HTTP " + res.status);
@@ -1085,34 +1106,46 @@
         const json = await res.json();
         const record = json.record;
 
-        // Suporta formato antigo { atendimentos: [] } e novo []
         let lista = [];
         if (Array.isArray(record)){
           lista = record;
         } else if (record && Array.isArray(record.atendimentos)){
           lista = record.atendimentos;
         }
-        // Filtra sentinel de array vazio
         atendimentosAll = lista.filter(r => !r.__vazio);
         listarAtendimentos();
 
-        // Só mostra toast se tiver dados — sem spam na primeira visita
-        if (atendimentosAll.length > 0){
-          toast(`${atendimentosAll.length} atendimentos carregados ✓`, "ok");
+        if (!silencioso){
+          toast(`${atendimentosAll.length} atendimento(s) carregado(s) ✓`, "ok");
         }
       } catch(err){
-        atendimentosAll = [];
-        listarAtendimentos();
-        if (err.message === "auth"){
-          toast("API Key inválida. Verifique a configuração.", "err", 6000);
-        } else if (err.message === "notfound"){
-          toast("Bin ID não encontrado. Verifique a configuração.", "err", 6000);
-        } else {
-          toast("Não foi possível conectar ao servidor. Trabalhando offline.", "err", 5000);
+        if (!silencioso){
+          atendimentosAll = [];
+          listarAtendimentos();
+          if (err.message === "auth"){
+            toast("API Key inválida. Verifique a configuração.", "err", 6000);
+          } else if (err.message === "notfound"){
+            toast("Bin ID não encontrado. Verifique a configuração.", "err", 6000);
+          } else {
+            toast("Não foi possível conectar ao servidor. Trabalhando offline.", "err", 5000);
+          }
         }
         console.error(err);
       } finally {
-        setBtnSalvarLoading(false);
+        if (!silencioso){
+          setBtnSalvarLoading(false);
+          if (btnAtualizar){
+            btnAtualizar.disabled = false;
+            btnAtualizar.innerHTML = `
+              <svg class="icon" viewBox="0 0 24 24" fill="none">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 3v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 21v-5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Atualizar`;
+          }
+        }
       }
     }
 
@@ -1561,10 +1594,18 @@
       abrirModal(modalIdAtual); // volta para modo leitura com dados novos
     });
 
+    /* ---------- botão Atualizar ---------- */
+    document.getElementById("btn-atualizar").addEventListener("click", () => {
+      carregarDoServidor(false);
+    });
+
     /* ---------- inicialização ---------- */
-    window.addEventListener("load", carregarDoServidor);
+    window.addEventListener("load", () => {
+      carregarDoServidor(false);
+      // Auto-refresh silencioso a cada 2 minutos
+      setInterval(() => carregarDoServidor(true), 2 * 60 * 1000);
+    });
   </script>
 
 </body>
 </html>
-
