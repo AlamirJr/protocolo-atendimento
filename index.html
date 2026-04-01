@@ -783,7 +783,7 @@
 
               <div class="field col-3">
                 <label for="ae">AE</label>
-                <input type="text" id="ae" required placeholder="Escola / AE" />
+                <input type="text" id="ae" required placeholder="Escola / AE" list="lista-escolas" autocomplete="off" />
               </div>
 
               <div class="field col-3">
@@ -915,6 +915,29 @@
 
   </div>
 
+
+
+  <!-- Datalist de escolas -->
+  <datalist id="lista-escolas">
+      <option value="CIEP 001 - Nova Esperança">
+      <option value="CIEP 033 - Castro Alves">
+      <option value="CIEP 045 - Santos Dumont">
+      <option value="CIEP 078 - Monteiro Lobato">
+      <option value="CIEP 099 - Olavo Bilac">
+      <option value="CIEP 112 - Marechal Deodoro">
+      <option value="EE Cel. Marcelino Pereira">
+      <option value="EE Dr. Álvaro Henrique">
+      <option value="EE Floriano Peixoto">
+      <option value="EE Getúlio Vargas">
+      <option value="EE Tiradentes">
+      <option value="EE Visconde de Mauá">
+      <option value="EM Dom Pedro II">
+      <option value="EM José de Anchieta">
+      <option value="EM Machado de Assis">
+      <option value="EM Prefeito Raimundo Costa">
+      <option value="EM Prof. João Batista">
+      <option value="EM Rui Barbosa">
+  </datalist>
 
   <!-- MODAL DE DETALHES -->
   <div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
